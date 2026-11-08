@@ -41,12 +41,10 @@ h1, h2, h3, p { margin: 0; }
 .app[data-layout=wide] .pane { display: flex; border-radius: 20px; overflow: hidden; background: var(--surface); }
 .app[data-layout=wide] #paneRooms { flex: 0 0 min(380px, 32%); }
 .app[data-layout=wide] #paneBrowse { flex: 0 0 min(360px, 30%); }
-.app[data-layout=wide] .pane > .scroll, .app[data-layout=wide] .np { padding-left: 14px; padding-right: 14px; }
 .app[data-layout=wide] .back { display: none; }
 .app[data-layout=mini] .layout, .app[data-layout=mini] .tabbar { display: none; }
 .mini { display: none; }
 .app[data-layout=mini] .mini { display: flex; }
-.scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 0 24px; display: flex; flex-direction: column; gap: 14px; }
 .h1 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
 .sec { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
 .row { display: flex; align-items: center; gap: 10px; }
@@ -107,9 +105,8 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 #paneZone { background: color-mix(in srgb, var(--amb-src) 16%, var(--tile)); border-radius: 20px; transition: background .6s ease; }
 .ztop { flex: none; height: 56px; padding: 0 6px; display: flex; align-items: center; gap: 4px; }
 .ztop .center { flex: 1 1 auto; min-width: 0; text-align: center; }
-.np { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 18px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.np .bigcover { width: min(74vw, 44vh, 340px); height: min(74vw, 44vh, 340px); border-radius: 22px; box-shadow: 0 18px 40px rgba(0,0,0,.28); }
-.app[data-layout=wide] .np .bigcover { width: min(34vw, 44vh, 360px); height: min(34vw, 44vh, 360px); }
+.np { flex: 1 1 auto; min-height: 0; overflow: hidden; padding: 0 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.np .bigcover { width: 0; height: 0; border-radius: 20px; box-shadow: 0 14px 32px rgba(0,0,0,.25); }
 .np .meta { width: 100%; max-width: 460px; display: flex; align-items: center; gap: 12px; }
 .np .title { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
 .np .artist { font-size: 15px; color: var(--muted); }
@@ -119,7 +116,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .ctl { width: 52px; height: 52px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; border-radius: 26px; color: var(--text); }
 .ctl.small { width: 44px; height: 44px; color: var(--dim); }
 .ctl.on { color: var(--accent); }
-.ctl.big { width: 76px; height: 76px; border-radius: 38px; background: var(--accent); color: var(--on-accent); }
+.ctl.big { width: 64px; height: 64px; border-radius: 32px; background: var(--accent); color: var(--on-accent); }
 .panel { width: 100%; max-width: 460px; padding: 14px; border-radius: 18px; background: var(--surface2); display: flex; flex-direction: column; gap: 8px; }
 .linkrow { width: 100%; max-width: 460px; display: flex; gap: 8px; flex-wrap: wrap; }
 .linkrow .btn { flex: 1 1 140px; }
@@ -172,6 +169,42 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 /* Mini */
 .mini { height: 100%; align-items: center; gap: 10px; }
 .mini .cover { height: 100%; max-height: 96px; aspect-ratio: 1 / 1; width: auto; }
+
+/* Seitenbasiertes Layout: nichts scrollt, Listen werden geblättert */
+.view { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 12px; padding: 2px 0 6px; overflow: hidden; }
+.app[data-layout=wide] .view { padding: 12px 14px 8px; }
+.vhead { flex: none; min-height: 44px; gap: 8px; }
+.vhead .chip { height: 36px; padding: 0 12px; }
+.pagelist { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.pagelist > * { flex: none; }
+.pager { flex: none; height: 48px; display: flex; align-items: center; justify-content: center; gap: 18px; font-size: 13px; color: var(--muted); }
+.pager .iconbtn { width: 40px; height: 40px; }
+.pager .iconbtn[disabled] { opacity: .35; cursor: default; }
+.sec { height: 20px; line-height: 20px; margin: 0; }
+.sec.subhead { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.zcard { position: relative; height: 126px; padding: 12px 14px; gap: 8px; overflow: hidden; }
+.zcard .zrow { height: 56px; }
+.zcard .vrow { height: 36px; min-height: 0; }
+.zbar { position: absolute; left: 14px; right: 14px; bottom: 5px; height: 3px; }
+.c56 { width: 56px; height: 56px; }
+.idlerow { height: 64px; display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 10px; }
+.tile { height: 64px; min-height: 0; }
+.hint.h84 { height: 84px; display: flex; align-items: center; overflow: hidden; }
+.vicon { width: 36px; height: 36px; flex: none; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+.iconbtn.sm { width: 36px; height: 36px; }
+.vrow { height: 44px; min-height: 0; }
+.searchrow { height: 58px; display: flex; align-items: center; }
+.searchrow .search { flex: 1 1 auto; margin: 0; }
+.skel { height: 58px; margin: 0; }
+.covbox { flex: 1 1 auto !important; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+.np > * { flex: none; }
+.npvol { width: 100%; max-width: 460px; padding: 0 4px; border-radius: 16px; background: var(--surface2); }
+.actions { width: 100%; max-width: 460px; display: flex; gap: 8px; }
+.actions .btn { flex: 1 1 0; min-width: 0; height: 42px; padding: 0 10px; }
+.stitle { font-size: 19px; font-weight: 700; }
+.sheet.tall { height: min(88%, 680px); }
+.sheet .sbody { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.checkrow { height: 54px; min-height: 0; padding: 0 4px; }
 </style>
 
 <div class="app" id="app" data-layout="phone">
@@ -229,6 +262,7 @@ var I = (function () {
     folder: function (w) { return s(w || 18, '<path d="M4 6h6l2 2h8v10H4z"></path>'); },
     house: function (w) { return s(w || 16, '<path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path>'); },
     zone: function (w) { return s(w || 16, '<rect x="3" y="6" width="7" height="12" rx="1.5"></rect><rect x="14" y="6" width="7" height="12" rx="1.5"></rect><path d="M10 12h4"></path>'); },
+    sliders: function (w) { return s(w || 18, '<path d="M4 7h9"></path><path d="M17 7h3"></path><circle cx="15" cy="7" r="2"></circle><path d="M4 17h3"></path><path d="M11 17h9"></path><circle cx="9" cy="17" r="2"></circle>'); },
     refresh: function (w) { return s(w || 18, '<path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path>'); }
   };
 })();
@@ -342,85 +376,147 @@ function handleMessage(data) {
   render();
 }
 
+/* ------------------------------------------------------------------ Seiten statt Scrollen
+ * Symcon wertet Wischgesten auf Kacheln selbst aus (die Seite scrollt). Scrollen innerhalb der
+ * Kachel ist deshalb vor allem in der App nicht verlässlich. Die Kachel scrollt darum nie:
+ * Die verfügbare Höhe wird gemessen und Einträge mit fester Höhe werden auf Seiten verteilt. */
+var CAP = {}, CAPW = {}, PAGE = {}, PAGEKEY = {};
+function paginate(entries, cap, gap) {
+  var pages = [], cur = [], used = 0;
+  var sum = function (list) { return list.reduce(function (s, x, i) { return s + x.h + (i ? gap : 0); }, 0); };
+  entries.forEach(function (e) {
+    var need = e.h + (cur.length ? gap : 0);
+    if (cur.length && used + need > cap) {
+      var carry = [];
+      while (cur.length && cur[cur.length - 1].head) carry.unshift(cur.pop()); // Überschrift nicht allein am Seitenende
+      if (cur.length) pages.push(cur);
+      cur = carry; used = sum(carry);
+      need = e.h + (cur.length ? gap : 0);
+    }
+    cur.push(e); used += need;
+  });
+  if (cur.length) pages.push(cur);
+  return pages.length ? pages : [[]];
+}
+function paged(key, entries, gap, resetKey) {
+  if (resetKey !== undefined && PAGEKEY[key] !== resetKey) { PAGEKEY[key] = resetKey; PAGE[key] = 0; }
+  var pages = paginate(entries, CAP[key] || 480, gap);
+  var n = pages.length, i = Math.max(0, Math.min(PAGE[key] || 0, n - 1));
+  PAGE[key] = i;
+  var h = '<div class="pagelist" data-pager="' + key + '" style="gap:' + gap + 'px">' + pages[i].map(function (e) { return e.html; }).join('') + '</div>';
+  if (n > 1) {
+    h += '<div class="pager"><button class="iconbtn" data-act="page" data-k="' + key + '" data-v="-1" aria-label="Vorherige Seite"' + (i === 0 ? ' disabled' : '') + '>' + I.back(20) + '</button>' +
+      '<span>Seite ' + (i + 1) + ' von ' + n + '</span>' +
+      '<button class="iconbtn" data-act="page" data-k="' + key + '" data-v="1" aria-label="Nächste Seite"' + (i === n - 1 ? ' disabled' : '') + '>' + I.chev(20) + '</button></div>';
+  }
+  return h;
+}
+function turnPage(key, delta) { PAGE[key] = Math.max(0, (PAGE[key] || 0) + delta); render(); }
+function cols(key, minWidth) { var w = CAPW[key] || 360; return Math.max(1, Math.floor((w + 10) / (minWidth + 10))); }
+function measure() {
+  var changed = false;
+  document.querySelectorAll('[data-pager]').forEach(function (el) {
+    if (el.getClientRects().length === 0) return; // nicht sichtbar
+    var k = el.getAttribute('data-pager'), h = el.clientHeight, w = el.clientWidth;
+    if (h > 0 && Math.abs((CAP[k] || 0) - h) > 2) { CAP[k] = h; changed = true; }
+    if (w > 0 && Math.abs((CAPW[k] || 0) - w) > 2) { CAPW[k] = w; changed = true; }
+  });
+  return changed;
+}
+function fitCovers() {
+  document.querySelectorAll('.covbox').forEach(function (box) {
+    var c = box.firstElementChild; if (!c) return;
+    var s = Math.floor(Math.min(box.clientWidth, box.clientHeight, 360));
+    c.style.display = s < 64 ? 'none' : '';
+    c.style.width = c.style.height = Math.max(0, s) + 'px';
+  });
+}
+function head(text, sub) { return { h: 20, head: true, html: '<div class="sec' + (sub ? ' subhead' : '') + '">' + esc(text) + '</div>' }; }
+
 /* ------------------------------------------------------------------ Rendering */
 function render() {
   if (S.drag) { S.dirty = true; return; }
   if (S.raf) return;
   S.raf = requestAnimationFrame(function () { S.raf = 0; renderNow(); });
 }
-function keepScroll(fn) {
-  var pos = {};
-  document.querySelectorAll('[data-scroll]').forEach(function (el) { pos[el.getAttribute('data-scroll')] = el.scrollTop; });
-  fn();
-  document.querySelectorAll('[data-scroll]').forEach(function (el) { var k = el.getAttribute('data-scroll'); if (k in pos) el.scrollTop = pos[k]; });
-}
 function renderNow() {
   var app = $('#app');
   app.setAttribute('data-layout', S.layout);
   $('#offline').hidden = !(S.st && !S.st.online);
-  keepScroll(function () {
-    if (S.layout === 'mini') { renderMini(); return; }
-    if (S.layout === 'wide' || S.view === 'rooms') renderRooms();
-    if (S.layout === 'wide' || S.view === 'zone') renderZone();
-    if (S.layout === 'wide' || S.view === 'browse') renderBrowse();
-    ['rooms', 'zone', 'browse'].forEach(function (v) {
-      $('#pane' + v[0].toUpperCase() + v.slice(1)).classList.toggle('on', S.view === v);
-    });
-    document.querySelectorAll('.tab').forEach(function (b) {
-      var cur = b.getAttribute('data-v') === S.view || (S.view === 'zone' && b.getAttribute('data-v') === 'rooms');
-      if (cur) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
-    });
-    renderSheet();
-  });
+  for (var pass = 0; pass < 3; pass++) {
+    renderAll();
+    if (!measure()) break;
+  }
+  fitCovers();
   if ((S.layout === 'wide' || S.view === 'browse') && S.st && S.st.spotify && !S.browse.loaded && !S.browse.loading) browseLoad();
+}
+function renderAll() {
+  if (S.layout === 'mini') { renderMini(); return; }
+  if (S.layout === 'wide' || S.view === 'rooms') renderRooms();
+  if (S.layout === 'wide' || S.view === 'zone') renderZone();
+  if (S.layout === 'wide' || S.view === 'browse') renderBrowse();
+  ['rooms', 'zone', 'browse'].forEach(function (v) {
+    $('#pane' + v[0].toUpperCase() + v.slice(1)).classList.toggle('on', S.view === v);
+  });
+  document.querySelectorAll('.tab').forEach(function (b) {
+    var cur = b.getAttribute('data-v') === S.view || (S.view === 'zone' && b.getAttribute('data-v') === 'rooms');
+    if (cur) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  renderSheet();
 }
 
 function playButton(z, cls) {
   var playing = effMode(z) === 'play';
   return '<button class="play ' + (cls || '') + '" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + (playing ? 'Pause' : 'Wiedergabe') + ' ' + esc(zoneName(z)) + '">' + (playing ? I.pause() : I.play()) + '</button>';
 }
-function volRow(id, label, extra) {
+function muteButton(p) {
+  return '<button class="iconbtn ghost sm" data-act="mute" data-p="' + esc(p.id) + '" data-v="' + (p.muted ? 0 : 1) + '" aria-label="' + (p.muted ? 'Ton an' : 'Stumm') + ' ' + esc(p.name) + '">' + (p.muted ? I.mute() : I.speaker()) + '</button>';
+}
+function slider(act, id, value, label) {
+  return '<input type="range" min="0" max="100" step="1" value="' + value + '" style="--p:' + value + '%" data-act="' + act + '" data-p="' + esc(id) + '" aria-label="' + esc(label) + '">';
+}
+/* Eine Reglerzeile mit Name (Lautstärke je Raum) */
+function volRow(id) {
   var p = player(id); if (!p) return '';
-  return '<div class="vrow">' +
-    '<span class="vname ellipsis">' + esc(label || p.name) + (extra || '') + '</span>' +
-    '<button class="iconbtn ghost" style="width:32px;height:32px" data-act="mute" data-p="' + esc(id) + '" data-v="' + (p.muted ? 0 : 1) + '" aria-label="' + (p.muted ? 'Ton an' : 'Stumm') + ' ' + esc(p.name) + '">' + (p.muted ? I.mute() : I.speaker()) + '</button>' +
-    '<input type="range" min="0" max="100" step="1" value="' + p.volume + '" style="--p:' + p.volume + '%" data-act="vol" data-p="' + esc(id) + '" aria-label="Lautstärke ' + esc(p.name) + '">' +
+  return '<div class="vrow"><span class="vname ellipsis">' + esc(p.name) + '</span>' + muteButton(p) + slider('vol', id, p.volume, 'Lautstärke ' + p.name) +
     '<span class="vval" data-vval="' + esc(id) + '">' + p.volume + '</span></div>';
+}
+/* Kompakte Reglerzeile einer Zone: gemeinsam (mehrere Räume) oder der einzelne Raum */
+function volumeLine(z) {
+  if (z.members.length > 1) {
+    var zv = zoneVolume(z);
+    return '<div class="vrow"><span class="vicon">' + I.speaker() + '</span>' + slider('zoneVol', z.id, zv, 'Lautstärke der Zone ' + zoneName(z)) +
+      '<span class="vval" data-vval="zone:' + esc(z.id) + '">' + zv + '</span>' +
+      '<button class="iconbtn ghost sm" data-act="volSheet" data-p="' + esc(z.id) + '" aria-label="Lautstärke je Raum">' + I.sliders() + '</button></div>';
+  }
+  var p = player(z.id); if (!p) return '';
+  return '<div class="vrow">' + muteButton(p) + slider('vol', p.id, p.volume, 'Lautstärke ' + p.name) +
+    '<span class="vval" data-vval="' + esc(p.id) + '">' + p.volume + '</span></div>';
 }
 function accountLine(z) {
   if (!S.st.spotify || !z.account || (S.st.accounts || []).length < 2) return '';
   return '<span title="Spotify: ' + esc(z.accountName || accName(z.account)) + '">' + avatar(z.account) + '</span>';
 }
 
-function zoneCard(z) {
+function zoneCardEntry(z) {
   var live = isActive(z);
-  var sub = [];
-  if (z.hasTrack) { sub.push(esc(z.artist || (z.remote ? 'Stream' : ''))); } else { sub.push(z.power ? 'Bereit' : 'Aus'); }
-  var acc = accountLine(z);
-  var h = '<article class="card ' + (live ? 'live' : '') + '">' +
-    '<div class="zrow"><button class="zhead" data-act="openZone" data-p="' + esc(z.id) + '">' + coverHTML(z, 'c60') +
-    '<span class="ztext"><span class="zlabel">' + esc(z.members.length > 1 ? zoneLabel(z) : zoneName(z)) + '</span>' +
+  var sub = z.hasTrack ? esc(z.artist || (z.remote ? 'Stream' : '')) : (z.power ? 'Bereit' : 'Aus');
+  var html = '<article class="card zcard ' + (live ? 'live' : '') + '">' +
+    '<div class="zrow"><button class="zhead" data-act="openZone" data-p="' + esc(z.id) + '">' + coverHTML(z, 'c56') +
+    '<span class="ztext"><span class="zlabel ellipsis">' + esc(z.members.map(pname).join(', ')) + '</span>' +
     '<span class="ztitle ellipsis">' + esc(z.hasTrack ? (z.title || 'Unbekannter Titel') : 'Nichts in der Warteschlange') + '</span>' +
-    '<span class="zsub">' + acc + '<span class="ellipsis">' + sub.join('') + '</span></span></span></button>' +
-    (z.hasTrack ? playButton(z) : '') + '</div>';
-  if (z.hasTrack && z.duration > 0) {
-    h += '<div class="bar"><i data-prog="' + esc(z.id) + '" style="width:' + (100 * position(z) / z.duration).toFixed(1) + '%"></i></div>';
-  }
-  h += '<div class="vlist">' + z.members.map(function (id, i) {
-    return volRow(id, z.members.length > 1 ? pname(id) : 'Lautstärke');
-  }).join('') + '</div>';
-  var btns = [];
-  if (players().length > 1) btns.push('<button class="btn" data-act="editZone" data-p="' + esc(z.id) + '">' + I.zone() + (z.members.length > 1 ? 'Zone ändern' : 'Räume verbinden') + '</button>');
-  if (S.st.spotify) btns.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + 'Spotify</button>');
-  if (btns.length) h += '<div class="row" style="gap:8px">' + btns.map(function (b) { return b.replace('class="btn"', 'class="btn" style="flex:1 1 0"'); }).join('') + '</div>';
-  return h + '</article>';
+    '<span class="zsub">' + accountLine(z) + '<span class="ellipsis">' + sub + '</span></span></span></button>' +
+    (z.hasTrack ? playButton(z) : '') + '</div>' + volumeLine(z) +
+    (z.hasTrack && z.duration > 0 ? '<div class="bar zbar"><i data-prog="' + esc(z.id) + '" style="width:' + (100 * position(z) / z.duration).toFixed(1) + '%"></i></div>' : '') +
+    '</article>';
+  return { h: 126, html: html };
 }
 
 function idleTile(z, joinTo) {
   var p = player(z.id);
   var state = !p || !p.connected ? 'getrennt' : (z.power ? (z.hasTrack ? 'pausiert' : 'bereit') : 'aus');
   var h = '<div class="tile"><button class="grow" style="background:none;border:none;padding:0;text-align:left" data-act="openZone" data-p="' + esc(z.id) + '">' +
-    '<span class="name ellipsis">' + esc(zoneName(z)) + '</span><span class="small dim">' + esc((p && p.area ? p.area + ' · ' : '') + state) + '</span></button>';
+    '<span class="name ellipsis">' + esc(zoneName(z)) + '</span><span class="small dim ellipsis">' + esc((p && p.area && !hasAreas() ? p.area + ' · ' : '') + state) + '</span></button>';
   if (z.hasTrack) h += '<button class="mini-btn" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + esc(zoneName(z)) + ' abspielen">' + I.play(16) + '</button>';
   if (joinTo) h += '<button class="mini-btn hot" data-act="join" data-p="' + esc(joinTo.id) + '" data-v="' + esc(z.id) + '" aria-label="' + esc(zoneName(z)) + ' zu ' + esc(zoneName(joinTo)) + ' hinzufügen">' + I.plus() + '</button>';
   return h + '</div>';
@@ -428,38 +524,38 @@ function idleTile(z, joinTo) {
 
 function renderRooms() {
   var el = $('#paneRooms');
-  if (!S.st) { el.innerHTML = '<div class="scroll"><div class="h1">Räume</div><div class="skel"></div><div class="skel"></div></div>'; return; }
+  if (!S.st) { el.innerHTML = '<div class="view"><div class="h1">Räume</div><div class="skel"></div><div class="skel"></div></div>'; return; }
   var zs = zones(), multi = players().length > 1;
   var anyPlaying = zs.some(function (z) { return effMode(z) === 'play'; });
-  var h = '<div class="scroll" data-scroll="rooms"><div class="row"><h1 class="h1 grow">Räume</h1>' +
+  var h = '<div class="view"><div class="row vhead"><h1 class="h1 grow">Räume</h1>' +
+    (multi ? '<button class="chip hot" data-act="party">' + I.house() + 'Ganzes Haus</button>' : '') +
     (anyPlaying ? '<button class="iconbtn" data-act="pauseAll" aria-label="Alles pausieren">' + I.pause(18) + '</button>' : '') + '</div>';
-  if (multi) {
-    h += '<div class="chips"><button class="chip hot" data-act="party">' + I.house() + 'Ganzes Haus</button>' +
-      (anyPlaying ? '<button class="chip" data-act="pauseAll">Alles pausieren</button>' : '') + '</div>';
-  }
+  var entries = [];
   if (zs.length === 0) {
-    h += '<div class="hint">Keine Player sichtbar. Prüfe die Instanz-Konfiguration in Symcon.</div>';
+    entries.push({ h: 84, html: '<div class="hint h84">Keine Player sichtbar. Prüfe die Instanz-Konfiguration in Symcon.</div>' });
   } else if (zs.length === 1) {
-    h += zoneCard(zs[0]);
+    entries.push(zoneCardEntry(zs[0]));
+    if (!multi) entries.push({ h: 84, html: '<div class="hint h84">Weitere Player erscheinen automatisch. Dann lassen sich Räume zu Zonen verbinden.</div>' });
   } else {
     var active = zs.filter(isActive), idle = zs.filter(function (z) { return !isActive(z); });
     var joinTo = active.length ? (active.find(function (z) { return effMode(z) === 'play'; }) || active[0]) : null;
-    if (active.length) h += '<h2 class="sec">Aktiv</h2>' + active.map(zoneCard).join('');
+    if (active.length) {
+      entries.push(head('Aktiv'));
+      active.forEach(function (z) { entries.push(zoneCardEntry(z)); });
+    }
     if (idle.length) {
-      h += '<h2 class="sec">' + (active.length ? 'Bereit' : 'Räume') + '</h2>';
-      if (hasAreas()) {
-        byArea(idle, function (z) { var p = player(z.id); return p ? p.area : ''; }).forEach(function (g) {
-          h += '<div class="small muted" style="font-weight:600">' + esc(g.area || 'Weitere') + '</div><div class="grid2">' + g.items.map(function (z) { return idleTile(z, joinTo); }).join('') + '</div>';
-        });
-      } else {
-        h += '<div class="grid2">' + idle.map(function (z) { return idleTile(z, joinTo); }).join('') + '</div>';
-      }
+      entries.push(head(active.length ? 'Bereit' : 'Räume'));
+      var c = cols('rooms', 150);
+      var groups = hasAreas() ? byArea(idle, function (z) { var p = player(z.id); return p ? p.area : ''; }) : [{ area: '', items: idle }];
+      groups.forEach(function (g) {
+        if (hasAreas()) entries.push(head(g.area || 'Weitere', true));
+        for (var i = 0; i < g.items.length; i += c) {
+          entries.push({ h: 64, html: '<div class="idlerow" style="--cols:' + c + '">' + g.items.slice(i, i + c).map(function (z) { return idleTile(z, joinTo); }).join('') + '</div>' });
+        }
+      });
     }
   }
-  if (!multi && zs.length === 1) {
-    h += '<div class="hint">Weitere Player erscheinen hier automatisch, sobald sie im Lyrion auftauchen. Dann lassen sich Räume zu Zonen verbinden.</div>';
-  }
-  el.innerHTML = h + '</div>';
+  el.innerHTML = h + paged('rooms', entries, 10) + '</div>';
 }
 
 function renderZone() {
@@ -470,10 +566,11 @@ function renderZone() {
   if (amb) el.style.setProperty('--amb-src', amb); else el.style.removeProperty('--amb-src');
   var playing = effMode(z) === 'play';
   var multiMembers = z.members.length > 1;
+  var accounts = S.st.accounts || [];
   var h = '<div class="ztop"><button class="iconbtn ghost back" data-act="tab" data-v="rooms" aria-label="Zurück zu den Räumen">' + I.back() + '</button>' +
-    '<div class="center"><div class="small" style="color:var(--muted);text-transform:uppercase;letter-spacing:.06em">' + esc(multiMembers ? 'Zone' : zoneLabel(z)) + '</div><div class="ellipsis" style="font-weight:600">' + esc(zoneName(z)) + '</div></div>' +
+    '<div class="center"><div class="small" style="color:var(--muted);text-transform:uppercase;letter-spacing:.06em">' + esc(multiMembers ? 'Zone' : zoneLabel(z)) + '</div><div class="ellipsis" style="font-weight:600">' + esc(multiMembers ? z.members.map(pname).join(', ') : zoneName(z)) + '</div></div>' +
     '<button class="iconbtn ghost" data-act="power" data-p="' + esc(z.id) + '" data-v="' + (z.power ? 0 : 1) + '" aria-label="' + (z.power ? 'Ausschalten' : 'Einschalten') + '" style="color:' + (z.power ? 'var(--accent)' : 'var(--dim)') + '">' + I.power() + '</button></div>';
-  h += '<div class="np" data-scroll="zone">' + coverHTML(z, 'bigcover');
+  h += '<div class="np"><div class="covbox">' + coverHTML(z, 'bigcover') + '</div>';
   if (z.hasTrack) {
     h += '<div class="meta"><div class="grow"><div class="title ellipsis">' + esc(z.title || 'Unbekannter Titel') + '</div><div class="artist ellipsis">' + esc([z.artist, z.album].filter(Boolean).join(' · ')) + '</div></div></div>';
     if (z.duration > 0) {
@@ -486,40 +583,30 @@ function renderZone() {
     h += '<div class="controls">' +
       '<button class="ctl small ' + (z.shuffle ? 'on' : '') + '" data-act="shuffle" data-p="' + esc(z.id) + '" data-v="' + (z.shuffle ? 0 : 1) + '" aria-pressed="' + (z.shuffle ? 'true' : 'false') + '" aria-label="Zufallswiedergabe">' + I.shuffle() + '</button>' +
       '<button class="ctl" data-act="prev" data-p="' + esc(z.id) + '" aria-label="Vorheriger Titel">' + I.prev() + '</button>' +
-      '<button class="ctl big" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + (playing ? 'Pause' : 'Wiedergabe') + '">' + (playing ? I.pause(30) : I.play(30)) + '</button>' +
+      '<button class="ctl big" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + (playing ? 'Pause' : 'Wiedergabe') + '">' + (playing ? I.pause(28) : I.play(28)) + '</button>' +
       '<button class="ctl" data-act="next" data-p="' + esc(z.id) + '" aria-label="Nächster Titel">' + I.next() + '</button>' +
       '<button class="ctl small ' + (z.repeat ? 'on' : '') + '" data-act="repeat" data-p="' + esc(z.id) + '" data-v="' + ({ 0: 2, 2: 1, 1: 0 })[z.repeat] + '" aria-label="Wiederholen: ' + ['aus', 'Titel', 'Liste'][z.repeat] + '">' + I.repeat(22, z.repeat === 1) + '</button></div>';
   } else {
     h += '<div class="empty">Hier läuft gerade nichts.' + (S.st.spotify ? ' Starte etwas aus Spotify.' : '') + '</div>';
   }
-  h += '<div class="panel">';
-  if (multiMembers) {
-    var zv = zoneVolume(z);
-    h += '<div class="vrow"><span class="vname">' + I.speaker() + 'Zone</span><input type="range" min="0" max="100" step="1" value="' + zv + '" style="--p:' + zv + '%" data-act="zoneVol" data-p="' + esc(z.id) + '" aria-label="Lautstärke der Zone"><span class="vval" data-vval="zone:' + esc(z.id) + '">' + zv + '</span></div>';
-    h += z.members.map(function (id) { return volRow(id, pname(id)); }).join('');
-  } else {
-    h += volRow(z.id, 'Lautstärke');
+  h += '<div class="npvol">' + volumeLine(z) + '</div>';
+  var acts = [];
+  if (S.st.spotify && accounts.length && z.account) {
+    acts.push('<button class="btn" data-act="' + (accounts.length > 1 ? 'accountSheet' : 'browseFor') + '" data-p="' + esc(z.id) + '" aria-label="Spotify-Konto: ' + esc(z.accountName || accName(z.account)) + '">' + avatar(z.account) + '<span class="ellipsis">' + esc(z.accountName || accName(z.account)) + '</span></button>');
   }
-  h += '</div>';
-  if (S.st.spotify && (S.st.accounts || []).length) {
-    h += '<div class="panel" style="flex-direction:row;align-items:center;gap:10px">' + (z.account ? avatar(z.account, 'l') : '') +
-      '<div class="grow"><div style="font-weight:600" class="ellipsis">Spotify · ' + esc(z.accountName || accName(z.account) || 'kein Konto') + '</div><div class="small muted">' + (multiMembers ? 'gilt für die ganze Zone' : 'gilt für diesen Raum') + '</div></div>' +
-      ((S.st.accounts || []).length > 1 ? '<button class="pill" data-act="accountSheet" data-p="' + esc(z.id) + '">Wechseln</button>' : '') + '</div>';
-  }
-  var links = [];
-  if (S.st.spotify) links.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + 'Spotify durchsuchen</button>');
-  if (players().length > 1) links.push('<button class="btn" data-act="editZone" data-p="' + esc(z.id) + '">' + I.zone() + 'Zone bearbeiten</button>');
-  if (links.length) h += '<div class="linkrow">' + links.join('') + '</div>';
+  if (players().length > 1) acts.push('<button class="btn" data-act="editZone" data-p="' + esc(z.id) + '">' + I.zone() + '<span class="ellipsis">' + (multiMembers ? 'Zone' : 'Verbinden') + '</span></button>');
+  if (S.st.spotify) acts.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + '<span class="ellipsis">Spotify</span></button>');
+  if (acts.length) h += '<div class="actions">' + acts.join('') + '</div>';
   el.innerHTML = h + '</div>';
 }
 
 function renderBrowse() {
   var el = $('#paneBrowse');
   var b = S.browse, top = b.stack[b.stack.length - 1];
-  var h = '<div class="btop">' + (b.stack.length ? '<button class="iconbtn ghost" data-act="browseBack" aria-label="Zurück">' + I.back() + '</button>' : '<span style="width:10px"></span>') +
+  var h = '<div class="btop">' + (b.stack.length ? '<button class="iconbtn ghost" data-act="browseBack" aria-label="Zurück">' + I.back() + '</button>' : '<span style="width:4px"></span>') +
     '<div class="h grow ellipsis">' + esc(top ? top.name : 'Spotify') + '</div>' +
     (S.st && S.st.spotify ? '<button class="iconbtn ghost" data-act="browseReload" aria-label="Neu laden">' + I.refresh() + '</button>' : '') + '</div>';
-  h += '<div class="scroll" data-scroll="browse" style="padding-top:4px">';
+  h += '<div class="view">';
   if (!S.st) { el.innerHTML = h + '<div class="skel"></div><div class="skel"></div></div>'; return; }
   if (!S.st.spotify) {
     el.innerHTML = h + '<div class="hint">Das Spotify-Plugin wurde im Lyrion nicht gefunden. Prüfe, ob SpotOn installiert ist und ob in der Instanz der richtige Plugin-Befehl eingetragen ist.</div></div>';
@@ -538,32 +625,32 @@ function renderBrowse() {
       h += '<label class="target"><span class="small muted">Abspielen in</span><select data-act="target" aria-label="Abspielen in">' + zones().map(function (z) {
         return '<option value="' + esc(z.id) + '"' + (t && t.id === z.id ? ' selected' : '') + '>' + esc(zoneName(z)) + '</option>';
       }).join('') + '</select></label>';
-    } else if (t) {
-      h += '<div class="small muted">Spielt in: ' + esc(zoneName(t)) + '</div>';
     }
   }
+  var entries = [];
   if (b.loading) {
-    h += '<div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+    for (var s = 0; s < 6; s++) entries.push({ h: 58, html: '<div class="skel"></div>' });
   } else if (b.error) {
-    h += '<div class="hint">Laden fehlgeschlagen. <button class="pill" data-act="browseReload" style="color:var(--text);margin-left:6px">Erneut versuchen</button></div>';
+    entries.push({ h: 84, html: '<div class="hint h84">Laden fehlgeschlagen. <button class="pill" data-act="browseReload" style="margin-left:6px">Erneut versuchen</button></div>' });
   } else if (!b.items.length) {
-    h += '<div class="hint">Keine Einträge.</div>';
+    entries.push({ h: 84, html: '<div class="hint h84">Keine Einträge.</div>' });
   } else {
     var order = b.items.map(function (it, i) { return i; });
     order.sort(function (a, c) { return (b.items[a].type === 'search' ? 0 : 1) - (b.items[c].type === 'search' ? 0 : 1) || a - c; });
-    h += '<div class="list">' + order.map(function (i) {
+    order.forEach(function (i) {
       var it = b.items[i];
       if (it.type === 'search') {
-        return '<form class="search" data-act="search" data-i="' + i + '">' + I.search() + '<input type="search" name="q" placeholder="' + esc(it.name || 'Suchen') + '" aria-label="' + esc(it.name || 'Suchen') + '" enterkeyhint="search"></form>';
+        entries.push({ h: 58, html: '<div class="searchrow"><form class="search" data-act="search" data-i="' + i + '">' + I.search() + '<input type="search" name="q" placeholder="' + esc(it.name || 'Suchen') + '" aria-label="' + esc(it.name || 'Suchen') + '" enterkeyhint="search"></form></div>' });
+        return;
       }
       var thumb = S.thumbs[it.id] ? '<img src="' + S.thumbs[it.id] + '" alt="">' : (it.items && !it.audio ? I.folder() : I.note());
       var clickable = it.items || it.audio;
-      return '<div class="item"><button class="open" data-act="item" data-i="' + i + '"' + (clickable ? '' : ' disabled') + '>' +
+      entries.push({ h: 58, html: '<div class="item"><button class="open" data-act="item" data-i="' + i + '"' + (clickable ? '' : ' disabled') + '>' +
         '<span class="thumb">' + thumb + '</span><span class="grow ellipsis" style="font-size:15px">' + esc(it.name) + '</span>' + (it.items ? '<span class="dim">' + I.chev() + '</span>' : '') + '</button>' +
-        (it.audio ? '<button class="mini-btn" data-act="playItem" data-i="' + i + '" aria-label="' + esc(it.name) + ' abspielen">' + I.play(16) + '</button>' : '') + '</div>';
-    }).join('') + '</div>';
+        (it.audio ? '<button class="mini-btn" data-act="playItem" data-i="' + i + '" aria-label="' + esc(it.name) + ' abspielen">' + I.play(16) + '</button>' : '') + '</div>' });
+    });
   }
-  el.innerHTML = h + '</div>';
+  el.innerHTML = h + paged('browse', entries, 0, b.req) + '</div>';
 }
 
 function renderMini() {
@@ -572,6 +659,10 @@ function renderMini() {
   el.innerHTML = coverHTML(z, '') + '<div class="grow ztext"><span class="zlabel ellipsis">' + esc(zoneName(z)) + '</span><span class="ztitle ellipsis">' + esc(z.hasTrack ? z.title : 'Bereit') + '</span><span class="small muted ellipsis">' + esc(z.artist || '') + '</span></div>' + (z.hasTrack ? playButton(z) : '');
 }
 
+function sheetHead(title, sub) {
+  return '<div class="shead"><div class="grow"><div class="stitle">' + esc(title) + '</div>' + (sub ? '<div class="small muted" style="margin-top:4px">' + esc(sub) + '</div>' : '') + '</div>' +
+    '<button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div>';
+}
 function renderSheet() {
   var wrap = $('#sheetWrap'), sh = S.sheet;
   if (!sh || !S.st) { wrap.hidden = true; wrap.innerHTML = ''; return; }
@@ -579,32 +670,42 @@ function renderSheet() {
   if (sh.type === 'zone') {
     var z = zoneOf(sh.zone);
     var sel = sh.sel;
-    var rowHTML = function (p) {
+    var rowEntry = function (p) {
       var idx = sel.indexOf(p.id), checked = idx >= 0, other = zoneOf(p.id);
       var busy = !checked && other && z && other.id !== z.id && isActive(other);
       var sub = checked ? (idx === 0 ? 'Quelle der Zone' : 'synchron') : (busy ? (effMode(other) === 'play' ? 'spielt: ' : 'pausiert: ') + (other.title || zoneName(other)) : (p.connected ? (p.power ? 'bereit' : 'aus') : 'getrennt'));
-      return '<label class="checkrow"><span class="grow"><span style="font-weight:500;display:flex;gap:8px;align-items:center">' + esc(p.name) + (idx === 0 ? '<span class="badge">Master</span>' : '') + '</span>' +
-        '<span class="small" style="color:' + (busy ? 'var(--error)' : 'var(--dim)') + '">' + esc(sub) + '</span></span>' +
-        '<input type="checkbox" data-act="zoneSel" data-p="' + esc(p.id) + '"' + (checked ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' in die Zone"></label>';
+      return { h: 54, html: '<label class="checkrow"><span class="grow"><span class="ellipsis" style="font-weight:500;display:flex;gap:8px;align-items:center">' + esc(p.name) + (idx === 0 ? '<span class="badge">Master</span>' : '') + '</span>' +
+        '<span class="small ellipsis" style="display:block;color:' + (busy ? 'var(--error)' : 'var(--dim)') + '">' + esc(sub) + '</span></span>' +
+        '<input type="checkbox" data-act="zoneSel" data-p="' + esc(p.id) + '"' + (checked ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' in die Zone"></label>' };
     };
-    var groups = hasAreas() ? byArea(players(), function (p) { return p.area; }) : [{ area: '', items: players() }];
+    var entries = [];
+    (hasAreas() ? byArea(players(), function (p) { return p.area; }) : [{ area: '', items: players() }]).forEach(function (g) {
+      if (g.area) entries.push(head(g.area));
+      g.items.forEach(function (p) { entries.push(rowEntry(p)); });
+    });
     var stealing = sel.some(function (id) { var o = zoneOf(id); return o && z && o.id !== z.id && isActive(o); });
-    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Zone bearbeiten"><div class="shead"><div class="grow"><div style="font-size:20px;font-weight:700">Welche Räume spielen mit?</div><div class="small muted" style="margin-top:4px">Markierte Räume laufen synchron. Der erste ist Master und bestimmt Quelle und Spotify-Konto.</div></div>' +
-      '<button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div><div class="sbody">' +
-      '<div class="chips"><button class="chip" data-act="zonePreset" data-v="all">Alle Räume</button><button class="chip" data-act="zonePreset" data-v="none">Nur ' + esc(pname(sh.zone)) + '</button></div>' +
-      groups.map(function (g) { return (g.area ? '<div class="sec">' + esc(g.area) + '</div>' : '') + '<div class="group">' + g.items.map(rowHTML).join('') + '</div>'; }).join('') +
-      (stealing ? '<div class="warn">Mindestens ein gewählter Raum hat gerade eine eigene Wiedergabe. Sie wird beendet, der Raum folgt dieser Zone.</div>' : '') +
+    h = '<div class="sheet tall" role="dialog" aria-modal="true" aria-label="Zone bearbeiten">' +
+      sheetHead('Welche Räume spielen mit?', 'Der erste Raum ist Master und bestimmt Quelle und Spotify-Konto.') +
+      '<div class="sbody"><div class="chips"><button class="chip" data-act="zonePreset" data-v="all">Alle Räume</button><button class="chip" data-act="zonePreset" data-v="none">Nur ' + esc(pname(sh.zone)) + '</button></div>' +
+      paged('zoneSheet', entries, 0, sh.opened) +
+      (stealing ? '<div class="warn">Ein gewählter Raum hat eine eigene Wiedergabe. Sie wird beendet, der Raum folgt dieser Zone.</div>' : '') +
       '</div><div class="sfoot"><button class="btn primary block" data-act="applyZone">' + (sel.length <= 1 ? 'Zone auflösen' : 'Übernehmen · ' + sel.length + ' Räume') + '</button></div></div>';
+  } else if (sh.type === 'volumes') {
+    var zv = zoneOf(sh.zone);
+    if (!zv) { S.sheet = null; wrap.hidden = true; wrap.innerHTML = ''; return; }
+    h = '<div class="sheet tall" role="dialog" aria-modal="true" aria-label="Lautstärke je Raum">' + sheetHead('Lautstärke je Raum', zv.members.map(pname).join(', ')) +
+      '<div class="sbody"><div class="panel">' + volumeLine(zv).replace(/<button class="iconbtn ghost sm" data-act="volSheet"[\s\S]*?<\/button>/, '') + '</div>' +
+      paged('volSheet', zv.members.map(function (id) { return { h: 44, html: volRow(id) }; }), 0, sh.opened) + '</div></div>';
   } else if (sh.type === 'account') {
     var za = zoneOf(sh.zone);
-    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Spotify-Konto"><div class="shead"><div class="grow"><div style="font-size:20px;font-weight:700">Spotify-Konto</div><div class="small muted" style="margin-top:4px">für ' + esc(za ? zoneName(za) : '') + '</div></div><button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div><div class="sbody"><div class="group">' +
+    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Spotify-Konto">' + sheetHead('Spotify-Konto', 'für ' + (za ? zoneName(za) : '')) + '<div class="sbody"><div class="group">' +
       (S.st.accounts || []).map(function (a) {
-        return '<button class="checkrow" style="width:100%;background:none;border:none;border-bottom:1px solid var(--card2);text-align:left" data-act="account" data-p="' + esc(sh.zone) + '" data-v="' + esc(a.id) + '" data-close="1">' +
-          '<span class="avatar l" style="background:' + accColor(a.id) + '">' + initial(a.name) + '</span><span class="grow" style="font-weight:500">' + esc(a.name) + '</span>' + (za && za.account === a.id ? '<span style="color:var(--accent)">aktiv</span>' : '') + '</button>';
+        return '<button class="checkrow" style="width:100%;background:none;border:none;text-align:left" data-act="account" data-p="' + esc(sh.zone) + '" data-v="' + esc(a.id) + '" data-close="1">' +
+          '<span class="avatar l" style="background:' + accColor(a.id) + '">' + initial(a.name) + '</span><span class="grow" style="font-weight:500">' + esc(a.name) + '</span>' + (za && za.account === a.id ? '<span style="color:var(--accent-text)">aktiv</span>' : '') + '</button>';
       }).join('') + '</div></div></div>';
   } else if (sh.type === 'item') {
     var it = sh.item, tz = targetZone();
-    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(it.name) + '"><div class="shead"><div class="grow"><div style="font-size:18px;font-weight:700">' + esc(it.name) + '</div><div class="small muted" style="margin-top:4px">in ' + esc(tz ? zoneName(tz) : '') + '</div></div><button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div>' +
+    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(it.name) + '">' + sheetHead(it.name, 'in ' + (tz ? zoneName(tz) : '')) +
       '<div class="sbody"><button class="btn primary block" data-act="itemMode" data-v="play">' + I.play(18) + 'Jetzt abspielen</button><button class="btn block" data-act="itemMode" data-v="insert">Als Nächstes</button><button class="btn block" data-act="itemMode" data-v="add">Am Ende anhängen</button></div></div>';
   }
   wrap.innerHTML = h;
@@ -649,7 +750,9 @@ document.addEventListener('click', function (e) {
       var jz = zoneOf(p), add = zoneOf(v);
       if (jz && add) send({ c: 'setZone', p: jz.id, v: jz.members.concat(add.members) });
       break;
-    case 'editZone': var ez = zoneOf(p); S.sheet = { type: 'zone', zone: ez ? ez.id : p, sel: ez ? ez.members.slice() : [p] }; break;
+    case 'editZone': var ez = zoneOf(p); S.sheet = { type: 'zone', zone: ez ? ez.id : p, sel: ez ? ez.members.slice() : [p], opened: Date.now() }; break;
+    case 'volSheet': var vz = zoneOf(p); if (vz) S.sheet = { type: 'volumes', zone: vz.id, opened: Date.now() }; break;
+    case 'page': turnPage(el.getAttribute('data-k'), Number(v)); return;
     case 'zonePreset':
       if (S.sheet) S.sheet.sel = v === 'all' ? [S.sheet.zone].concat(players().map(function (x) { return x.id; }).filter(function (id) { return id !== S.sheet.zone; })) : [S.sheet.zone];
       break;
@@ -741,6 +844,28 @@ function finishDrag(el) {
   document.addEventListener(ev, function () { if (S.drag) setTimeout(function () { if (S.drag) { S.drag = null; if (S.dirty) { S.dirty = false; render(); } } }, 600); }, true);
 });
 
+/* Mausrad und Wischgesten blättern zusätzlich, sofern Symcon sie an die Kachel weitergibt */
+var wheelLock = 0, touch = null;
+document.addEventListener('wheel', function (e) {
+  var el = e.target.closest && e.target.closest('[data-pager]');
+  if (!el || Math.abs(e.deltaY) < 15) return;
+  e.preventDefault();
+  if (Date.now() < wheelLock) return;
+  wheelLock = Date.now() + 450;
+  turnPage(el.getAttribute('data-pager'), e.deltaY > 0 ? 1 : -1);
+}, { passive: false });
+document.addEventListener('touchstart', function (e) {
+  var el = e.target.closest && e.target.closest('[data-pager]');
+  touch = (!el || e.target.closest('input')) ? null : { k: el.getAttribute('data-pager'), x: e.touches[0].clientX, y: e.touches[0].clientY };
+}, { passive: true });
+document.addEventListener('touchend', function (e) {
+  if (!touch) return;
+  var t = e.changedTouches[0], dx = t.clientX - touch.x, dy = t.clientY - touch.y;
+  if (Math.abs(dy) > 50 && Math.abs(dy) > Math.abs(dx) * 1.5) turnPage(touch.k, dy < 0 ? 1 : -1);
+  else if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) turnPage(touch.k, dx < 0 ? 1 : -1);
+  touch = null;
+}, { passive: true });
+
 /* ------------------------------------------------------------------ Fortschritt & Layout */
 setInterval(function () {
   if (!S.st || S.drag) return;
@@ -783,7 +908,7 @@ function computeLayout() {
 })();
 
 S.layout = computeLayout();
-window.addEventListener('resize', function () { var l = computeLayout(); if (l !== S.layout) { S.layout = l; render(); } });
+window.addEventListener('resize', function () { S.layout = computeLayout(); render(); });
 render();
 setTimeout(function () { send({ c: 'hello' }); }, 30);
 </script>

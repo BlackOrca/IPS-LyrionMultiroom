@@ -32,7 +32,7 @@ function requestAction(ident, value) {
   window.__sent.push(JSON.parse(value));
   var m = JSON.parse(value);
   if (m.c === 'browse') {
-    var key = m.id ? (m.q ? 'search' : 'list') : 'root';
+    var key = m.id ? (m.q ? 'search' : (m.id === 'ab12.3' ? 'long' : 'list')) : 'root';
     setTimeout(function () {
       (window.__responses[key] || []).forEach(function (x) { x = JSON.parse(JSON.stringify(x)); x.req = m.req; handleMessage(JSON.stringify(x)); });
     }, 60);
@@ -81,7 +81,8 @@ with sync_playwright() as p:
     check("Karten leiten sich vom hellen Design ab (kein Dunkelgrau)", "23, 26, 33" not in bg, bg)
     ink = page.evaluate("getComputedStyle(document.querySelector('.play')).color")
     check("Schrift auf Akzent ohne --on-accent-color berechnet (dunkel auf Türkis)", ink in ("rgb(17, 20, 24)",), ink)
-    check("Zonenkarte EG sichtbar", page.locator("article.card.live").count() >= 1)
+    check("Zonenkarte EG sichtbar", page.locator("article.zcard.live").count() >= 1)
+    check("Räume passen ohne Überlauf", page.evaluate("[...document.querySelectorAll('#paneRooms .pagelist')].every(e => e.scrollHeight <= e.clientHeight + 1)"))
     check("Bereiche gruppiert", page.get_by_text("Obergeschoss").count() >= 1)
 
     page.locator("button[data-act=join]").first.click()
@@ -92,13 +93,21 @@ with sync_playwright() as p:
     page.wait_for_timeout(300)
     page.screenshot(path=str(OUT / "02_phone_nowplaying.png"))
     check("Now Playing zeigt Titel", page.locator(".np .title").inner_text() == "Golden Hour Drive")
+    check("Now Playing passt ohne Überlauf", page.evaluate("(e => e.scrollHeight <= e.clientHeight + 1)(document.querySelector('#paneZone .np'))"))
+    cov = page.evaluate("document.querySelector('#paneZone .bigcover').getBoundingClientRect().width")
+    check("Cover nutzt den Restplatz (≥ 200 px)", cov >= 200, str(cov))
+    page.locator("#paneZone button[data-act=volSheet]").click()
+    page.wait_for_timeout(200)
+    page.screenshot(path=str(OUT / "02c_phone_volumes.png"))
+    check("Lautstärke je Raum im eigenen Fenster", page.locator(".sheet input[data-act=vol]").count() == 2)
+    page.locator("button[data-act=closeSheet]").click()
 
     page.locator(".ctl.big").click()
     check("Play/Pause sendet toggle", sent(page)[-1]["c"] == "toggle")
     page.wait_for_timeout(100)
     check("Optimistisch auf Pause umgeschaltet", page.locator(".ctl.big").get_attribute("aria-label") == "Wiedergabe")
 
-    rng = page.locator("input[data-act=zoneVol]")
+    rng = page.locator("#paneZone input[data-act=zoneVol]")
     rng.fill("60")
     rng.dispatch_event("change")
     zv = [m for m in sent(page) if m["c"] == "zoneVol"]
@@ -142,6 +151,26 @@ with sync_playwright() as p:
     page.wait_for_timeout(500)
     page.screenshot(path=str(OUT / "07_phone_search.png"))
     check("Suche zeigt Treffer", page.locator("button.open", has_text="Treffer 1").count() == 1)
+    page.locator("button[data-act=browseBack]").click()
+    page.wait_for_timeout(400)
+    page.locator("button.open", has_text="Bibliothek").click()
+    page.wait_for_timeout(500)
+    page.screenshot(path=str(OUT / "07b_phone_paging.png"))
+    pager = page.locator("#paneBrowse .pager span").inner_text()
+    check("Lange Liste wird geblättert", pager.startswith("Seite 1 von ") and int(pager.split()[-1]) > 1, pager)
+    check("Liste passt ohne Überlauf", page.evaluate("(e => e.scrollHeight <= e.clientHeight + 1)(document.querySelector('#paneBrowse .pagelist'))"))
+    page.locator("#paneBrowse button[data-act=page][data-v='1']").click()
+    page.wait_for_timeout(100)
+    check("Nächste Seite zeigt weitere Einträge", page.locator("#paneBrowse .pager span").inner_text().startswith("Seite 2") and page.evaluate("document.querySelector('#paneBrowse .item .grow').textContent") != "Playlist 1", page.evaluate("document.querySelector('#paneBrowse .item .grow').textContent"))
+    page.mouse.move(195, 400)
+    page.mouse.wheel(0, 300)
+    page.wait_for_timeout(150)
+    check("Mausrad blättert weiter", page.locator("#paneBrowse .pager span").inner_text().startswith("Seite 3"), page.locator("#paneBrowse .pager span").inner_text())
+    page.locator("button[data-act=browseBack]").click()
+    page.wait_for_timeout(400)
+    page.locator("form.search input").fill("nordlicht")
+    page.locator("form.search input").press("Enter")
+    page.wait_for_timeout(500)
     page.locator("button.open", has_text="Treffer 1").click()
     page.wait_for_timeout(200)
     page.screenshot(path=str(OUT / "08_phone_item_sheet.png"))
@@ -149,6 +178,18 @@ with sync_playwright() as p:
     s = sent(page)[-1]
     check("Titel als Nächstes einreihen", s["c"] == "playItem" and s["v"] == "insert", json.dumps(s))
     check("Keine JS-Fehler (Smartphone)", not errors, "; ".join(errors))
+
+    # ---------------------------------------------------------------- Kleine Kachel: Räume werden geblättert
+    print("== Kleine Kachel (390x520)")
+    page, errors = page_for(browser, MULTI, 390, 520, "phone_small")
+    page.screenshot(path=str(OUT / "01c_phone_small.png"))
+    check("Räume-Liste wird bei wenig Höhe geblättert", page.locator("#paneRooms .pager").count() == 1)
+    check("Kleine Kachel ohne Überlauf", page.evaluate("[...document.querySelectorAll('#paneRooms .pagelist')].every(e => e.scrollHeight <= e.clientHeight + 1)"))
+    page.locator("button.zhead").first.click()
+    page.wait_for_timeout(300)
+    page.screenshot(path=str(OUT / "02d_phone_small_np.png"))
+    check("Now Playing passt auch klein", page.evaluate("(e => e.scrollHeight <= e.clientHeight + 1)(document.querySelector('#paneZone .np'))"))
+    check("Keine JS-Fehler (klein)", not errors, "; ".join(errors))
 
     # ---------------------------------------------------------------- Dunkles Design
     print("== Smartphone, dunkles Design")

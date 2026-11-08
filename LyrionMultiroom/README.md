@@ -72,10 +72,12 @@ unter 300 px breit oder unter 240 px hoch | Mini-Player mit Cover, Titel und Pla
 bis 900 px breit                       | Smartphone: Räume, Now Playing und Spotify mit Tab-Leiste
 ab 900 px breit                        | Tablet: drei Spalten mit Räumen, Wiedergabe und Spotify
 
-* __Räume__: aktive Zonen mit Cover, Titel, Konto und Lautstärke je Raum; darunter die übrigen Räume, nach Bereichen gruppiert. Mit `+` wird ein Raum an die laufende Zone gehängt.
+* __Räume__: aktive Zonen mit Cover, Titel, Konto und Lautstärke (bei Zonen gemeinsam, über das Regler-Symbol je Raum); darunter die übrigen Räume, nach Bereichen gruppiert. Mit `+` wird ein Raum an die laufende Zone gehängt.
 * __Zone bearbeiten__: Räume per Häkchen auswählen; der zuerst gewählte Raum ist Master und bestimmt Quelle und Spotify-Konto.
-* __Now Playing__: großes Cover, Spulen, Zufall, Wiederholen, Zonen-Lautstärke, Lautstärke je Raum, Spotify-Konto der Zone.
+* __Now Playing__: Cover in der verfügbaren Größe, Spulen, Zufall, Wiederholen, Lautstärke, Spotify-Konto, Zone und Spotify direkt erreichbar.
 * __Spotify__: Kontoumschalter, Auswahl der Zone („Abspielen in“), Suche, Listen mit Vorschaubildern; Titel und Playlists lassen sich sofort abspielen, als Nächstes einreihen oder anhängen.
+
+Die Kachel scrollt nicht. Symcon nutzt Wischgesten auf Kacheln selbst zum Scrollen der Seite, deshalb wäre Scrollen innerhalb der Kachel vor allem in der App unzuverlässig. Stattdessen passt sich der Inhalt der Höhe der Kachel an: Lange Listen (Räume, Spotify, Zone bearbeiten) werden mit ‹ › seitenweise geblättert, im Browser zusätzlich per Mausrad.
 
 Farben und Schrift übernimmt die Kachel aus dem gewählten Design der Visualisierung (hell oder dunkel, Akzentfarbe, Kachelfarbe). Alle Flächen und Linien werden aus diesen Farben abgeleitet; der Kacheltitel von Symcon bleibt frei.
 

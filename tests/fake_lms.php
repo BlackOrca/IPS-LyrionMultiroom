@@ -237,6 +237,13 @@ switch ($cmd[0]) {
                     ['id' => $prefix . '.3', 'name' => 'Bibliothek', 'type' => 'link', 'image' => 'html/images/musicfolder.png', 'isaudio' => 0, 'hasitems' => 1]
                 ];
                 $result = ['count' => count($loop), 'title' => 'SpotOn', 'loop_loop' => $loop];
+            } elseif ($id === 'ab12.3') {
+                // lange Liste, um das Blättern zu prüfen
+                $loop = [];
+                for ($i = 0; $i < 40; $i++) {
+                    $loop[] = ['id' => $id . '.' . $i, 'name' => 'Playlist ' . ($i + 1), 'type' => 'playlist', 'image' => 'https://i.example/l' . $i . '.jpg', 'isaudio' => 1, 'hasitems' => 1];
+                }
+                $result = ['count' => 40, 'title' => 'Bibliothek', 'loop_loop' => $loop];
             } elseif ($search !== null) {
                 $loop = [];
                 for ($i = 0; $i < 3; $i++) {

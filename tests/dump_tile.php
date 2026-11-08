@@ -74,7 +74,8 @@ $capture = static function (callable $fn) use ($messages): array {
 $responses = [
     'root'   => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => '', 'req' => 'X']))),
     'list'   => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.1', 'req' => 'X']))),
-    'search' => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.2', 'q' => 'nordlicht', 'req' => 'X'])))
+    'search' => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.2', 'q' => 'nordlicht', 'req' => 'X']))),
+    'long'   => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.3', 'req' => 'X'])))
 ];
 file_put_contents($out . '/responses.json', json_encode($responses));
 proc_terminate($server);
