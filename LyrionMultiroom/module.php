@@ -74,6 +74,7 @@ class LyrionMultiroom extends IPSModuleStrict
         $this->SetBuffer('RX', '');
         $this->SetBuffer('LastHash', '');
         $this->TrackParent();
+        $this->ConfigureParent();
 
         if ($this->Host() === '') {
             $this->SetTimerInterval('Poll', 0);
@@ -98,6 +99,7 @@ class LyrionMultiroom extends IPSModuleStrict
             case FM_CONNECT:
             case FM_DISCONNECT:
                 $this->TrackParent();
+                $this->ConfigureParent();
                 if ($this->HasActiveParent()) {
                     $this->Subscribe();
                     $this->QueueRefresh('*');
@@ -159,6 +161,7 @@ class LyrionMultiroom extends IPSModuleStrict
             $rows[] = ['id' => $id, 'name' => (string) $live[$id]['name'], 'area' => '', 'visible' => true, 'rowColor' => '#E8F5E9'];
         }
         $this->SetFormListValues($form['elements'], 'Players', $rows);
+        array_unshift($form['actions'], ['type' => 'Label', 'caption' => $this->ConnectionInfo()]);
         return json_encode($form);
     }
 
@@ -1041,6 +1044,57 @@ class LyrionMultiroom extends IPSModuleStrict
         $this->SetBuffer('ParentID', (string) $new);
     }
 
+    /**
+     * Richtet den Client Socket selbst ein (Host, CLI-Port, geöffnet), damit nur am Modul konfiguriert werden muss.
+     * Ein vom Benutzer vergebener Name bleibt erhalten; nur der Standardname wird ersetzt.
+     */
+    private function ConfigureParent(): void
+    {
+        $parent = (int) $this->GetBuffer('ParentID');
+        if ($parent <= 0 || !IPS_InstanceExists($parent)) {
+            return;
+        }
+        if ((IPS_GetInstance($parent)['ModuleInfo']['ModuleID'] ?? '') !== self::CLIENT_SOCKET) {
+            return;
+        }
+        $host = $this->Host();
+        $wanted = ['Host' => $host, 'Port' => $this->ReadPropertyInteger('CliPort'), 'Open' => $host !== ''];
+        $changed = false;
+        foreach ($wanted as $name => $value) {
+            try {
+                if (IPS_GetProperty($parent, $name) !== $value) {
+                    IPS_SetProperty($parent, $name, $value);
+                    $changed = true;
+                }
+            } catch (Throwable $e) {
+                $this->SendDebug('Client Socket', $name . ': ' . $e->getMessage(), 0);
+            }
+        }
+        if ($changed) {
+            $this->SendDebug('Client Socket', json_encode($wanted), 0);
+            IPS_ApplyChanges($parent);
+        }
+        $name = IPS_GetName($parent);
+        if ($host !== '' && ($name === 'Client Socket' || str_starts_with($name, 'Lyrion CLI'))) {
+            $label = 'Lyrion CLI (' . $host . ')';
+            if ($name !== $label) {
+                IPS_SetName($parent, $label);
+            }
+        }
+    }
+
+    private function ConnectionInfo(): string
+    {
+        $parent = (int) $this->GetBuffer('ParentID');
+        if ($parent <= 0 || !IPS_InstanceExists($parent)) {
+            return $this->Translate('Live events: no Client Socket connected.');
+        }
+        if ($this->HasActiveParent()) {
+            return sprintf($this->Translate('Live events: active via #%d.'), $parent);
+        }
+        return sprintf($this->Translate('Live events: Client Socket #%d is not connected. Check host and CLI port (default 9090).'), $parent);
+    }
+
     private function TestConnection(): string
     {
         if ($this->Host() === '') {
@@ -1058,7 +1112,7 @@ class LyrionMultiroom extends IPSModuleStrict
         } else {
             $text .= ' ' . sprintf($this->Translate('Spotify accounts: %d.'), count($state['accounts'] ?? []));
         }
-        $text .= ' ' . ($this->HasActiveParent() ? $this->Translate('Live events active.') : $this->Translate('Client Socket is not active, live events missing.'));
+        $text .= ' ' . $this->ConnectionInfo();
         return $text;
     }
 

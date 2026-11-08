@@ -11,9 +11,23 @@ from playwright.sync_api import sync_playwright
 MULTI, SINGLE, OUT = (pathlib.Path(p).resolve() for p in sys.argv[1:4])
 OUT.mkdir(parents=True, exist_ok=True)
 
-HARNESS = """<!doctype html><html lang="de"><head><meta charset="utf-8"><script>
+# Nachbildung der Symcon-Kachelumgebung: Designvariablen, body-Ränder aus den Query-Parametern
+# (margintop/marginside/marginbottom) und der von Symcon überlagerte Kacheltitel.
+THEMES = {
+    "light": {"accent": "#1DCFAE", "content": "#1B1F24", "card": "#FFFFFF", "page": "#ECEDEF"},
+    "dark": {"accent": "#1DCFAE", "content": "#E6E8EB", "card": "#20242B", "page": "#121418"},
+}
+
+HARNESS = """<!doctype html><html lang="de"><head><meta charset="utf-8"><style>
+:root { --accent-color: %(accent)s; --content-color: %(content)s; --card-color: %(card)s; }
+html { background: %(page)s; }
+body { font-family: 'Poppins', 'Segoe UI', Roboto, sans-serif; color: var(--content-color); background: var(--card-color);
+       margin: 52px 16px 14px; user-select: none; }
+#symcon-title { position: fixed; top: 14px; left: 16px; font-size: 22px; font-weight: 500; color: var(--content-color); pointer-events: none; }
+#symcon-expand { position: fixed; top: 16px; right: 16px; width: 20px; height: 20px; border: 2px solid var(--content-color); opacity: .5; pointer-events: none; }
+</style><script>
 window.__sent = [];
-window.__responses = %s;
+window.__responses = %(responses)s;
 function requestAction(ident, value) {
   window.__sent.push(JSON.parse(value));
   var m = JSON.parse(value);
@@ -24,11 +38,11 @@ function requestAction(ident, value) {
     }, 60);
   }
 }
-</script></head><body>%s</body></html>"""
+</script></head><body><div id="symcon-title">LMS Multiroom</div><div id="symcon-expand"></div>%(tile)s</body></html>"""
 
 
-def page_for(browser, folder, w, h, name):
-    html = HARNESS % ((folder / "responses.json").read_text(), (folder / "tile.html").read_text())
+def page_for(browser, folder, w, h, name, theme="light"):
+    html = HARNESS % dict(THEMES[theme], responses=(folder / "responses.json").read_text(), tile=(folder / "tile.html").read_text())
     path = OUT / f"{name}.html"
     path.write_text(html)
     ctx = browser.new_context(viewport={"width": w, "height": h}, device_scale_factor=2)
@@ -61,6 +75,12 @@ with sync_playwright() as p:
     page, errors = page_for(browser, MULTI, 390, 844, "phone_multi")
     page.screenshot(path=str(OUT / "01_phone_rooms.png"))
     check("hello gesendet", any(m["c"] == "hello" for m in sent(page)))
+    top = page.evaluate("document.querySelector('#paneRooms .h1').getBoundingClientRect().top")
+    check("Inhalt beginnt unter dem Symcon-Kacheltitel", top >= 50, str(top))
+    bg = page.evaluate("getComputedStyle(document.querySelector('.card')).backgroundColor")
+    check("Karten leiten sich vom hellen Design ab (kein Dunkelgrau)", "23, 26, 33" not in bg, bg)
+    ink = page.evaluate("getComputedStyle(document.querySelector('.play')).color")
+    check("Schrift auf Akzent ohne --on-accent-color berechnet (dunkel auf Türkis)", ink in ("rgb(17, 20, 24)",), ink)
     check("Zonenkarte EG sichtbar", page.locator("article.card.live").count() >= 1)
     check("Bereiche gruppiert", page.get_by_text("Obergeschoss").count() >= 1)
 
@@ -129,6 +149,15 @@ with sync_playwright() as p:
     s = sent(page)[-1]
     check("Titel als Nächstes einreihen", s["c"] == "playItem" and s["v"] == "insert", json.dumps(s))
     check("Keine JS-Fehler (Smartphone)", not errors, "; ".join(errors))
+
+    # ---------------------------------------------------------------- Dunkles Design
+    print("== Smartphone, dunkles Design")
+    page, errors = page_for(browser, MULTI, 390, 844, "phone_dark", theme="dark")
+    page.screenshot(path=str(OUT / "01b_phone_rooms_dark.png"))
+    page.locator("button.zhead").first.click()
+    page.wait_for_timeout(300)
+    page.screenshot(path=str(OUT / "02b_phone_nowplaying_dark.png"))
+    check("Keine JS-Fehler (dunkel)", not errors, "; ".join(errors))
 
     # ---------------------------------------------------------------- Smartphone, ein Player
     print("== Smartphone, 1 Player")

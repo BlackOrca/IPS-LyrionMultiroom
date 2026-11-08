@@ -25,8 +25,9 @@
             "Connected to Lyrion %s. Players: %d.": "Verbunden mit Lyrion %s. Player: %d.",
             "Spotify plugin \"%s\" not found.": "Spotify-Plugin \"%s\" nicht gefunden.",
             "Spotify accounts: %d.": "Spotify-Konten: %d.",
-            "Live events active.": "Live-Ereignisse aktiv.",
-            "Client Socket is not active, live events missing.": "Client Socket ist nicht aktiv, Live-Ereignisse fehlen."
+            "Live events: no Client Socket connected.": "Live-Ereignisse: kein Client Socket verbunden.",
+            "Live events: active via #%d.": "Live-Ereignisse: aktiv über #%d.",
+            "Live events: Client Socket #%d is not connected. Check host and CLI port (default 9090).": "Live-Ereignisse: Client Socket #%d ist nicht verbunden. Host und CLI-Port (Standard 9090) prüfen."
         }
     }
 }

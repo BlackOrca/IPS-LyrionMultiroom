@@ -141,7 +141,7 @@ namespace {
     IPS\ModuleLoader::loadLibrary(__DIR__ . '/../library.json');
 
     $io = IPS_CreateInstance('{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}');
-    IPS_SetProperty($io, 'Open', true);
+    IPS_SetName($io, 'Client Socket');
     IPS_ApplyChanges($io);
     $id = IPS_CreateInstance('{91D1C7C4-ADEB-4A3B-A4B4-F288AF7D5140}');
     IPS_ConnectInstance($id, $io);
@@ -155,6 +155,10 @@ namespace {
     IPS_SetProperty($id, 'WebPort', $port);
     IPS_ApplyChanges($id);
     check('Mit Host → aktiv (Host normalisiert)', IPS_GetInstance($id)['InstanceStatus'] === IS_ACTIVE, (string) IPS_GetInstance($id)['InstanceStatus']);
+    check('Client Socket vom Modul geöffnet', IPS_GetProperty($io, 'Open') === true);
+    check('Client Socket sinnvoll benannt', IPS_GetName($io) === 'Lyrion CLI (127.0.0.1)', IPS_GetName($io));
+    $formActions = json_decode($module->GetConfigurationForm(), true)['actions'];
+    check('Formular zeigt Zustand der Live-Verbindung', str_starts_with($formActions[0]['caption'], 'Live events:'), $formActions[0]['caption']);
 
     $cli = [];
     $ioIf = IPS\InstanceManager::getInstanceInterface($io);

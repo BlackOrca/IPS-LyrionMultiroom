@@ -38,7 +38,7 @@ Eigenständige Anbindung des Lyrion Music Server (LMS) an IP-Symcon mit eigener 
  Unter 'Instanz hinzufügen' kann das 'Lyrion Multiroom'-Modul mithilfe des Schnellfilters gefunden werden.  
 	- Weitere Informationen zum Hinzufügen von Instanzen in der [Dokumentation der Instanzen](https://www.symcon.de/service/dokumentation/konzepte/instanzen/#Instanz_hinzufügen)
 
-Beim Anlegen erstellt Symcon automatisch einen Client Socket als übergeordnete Instanz. Host und CLI-Port übernimmt dieser aus der Konfiguration des Moduls, er wird geöffnet, sobald ein Host eingetragen ist.
+Beim Anlegen erstellt Symcon automatisch einen Client Socket als übergeordnete Instanz. Er muss nicht von Hand eingerichtet werden: Das Modul trägt Host und CLI-Port selbst ein, öffnet ihn, sobald ein Host eingetragen ist, und benennt ihn „Lyrion CLI (Host)“. Ob die Live-Verbindung steht, zeigt die erste Zeile im Aktionsbereich der Konfigurationsseite.
 
 __Konfigurationsseite__:
 
@@ -76,6 +76,8 @@ ab 900 px breit                        | Tablet: drei Spalten mit Räumen, Wiede
 * __Zone bearbeiten__: Räume per Häkchen auswählen; der zuerst gewählte Raum ist Master und bestimmt Quelle und Spotify-Konto.
 * __Now Playing__: großes Cover, Spulen, Zufall, Wiederholen, Zonen-Lautstärke, Lautstärke je Raum, Spotify-Konto der Zone.
 * __Spotify__: Kontoumschalter, Auswahl der Zone („Abspielen in“), Suche, Listen mit Vorschaubildern; Titel und Playlists lassen sich sofort abspielen, als Nächstes einreihen oder anhängen.
+
+Farben und Schrift übernimmt die Kachel aus dem gewählten Design der Visualisierung (hell oder dunkel, Akzentfarbe, Kachelfarbe). Alle Flächen und Linien werden aus diesen Farben abgeleitet; der Kacheltitel von Symcon bleibt frei.
 
 Bei nur einem Player blendet die Kachel die Zonen-Funktionen aus. Sie erscheinen automatisch, sobald ein zweiter Player im LMS auftaucht.
 
