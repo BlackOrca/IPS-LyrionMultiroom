@@ -1,0 +1,747 @@
+<style>
+:root {
+  --bg: #0E1014; --card: #171A21; --card2: #1F232C; --line: #262A33; --line2: #2A2F3A;
+  --text: #F3F4F6; --muted: #A7ADBA; --dim: #8A909C;
+  --accent: #FFB547; --accent-ink: #1A1206; --accent-soft: #2A2213; --accent-line: #3A3222; --accent-text: #FFD08A;
+  --warn-bg: #2A1A14; --warn-line: #5A3424; --warn-text: #FFC9B3;
+  --amb: #150F1E;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--text); overflow: hidden;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  font-size: 14px; line-height: 1.35; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+svg { display: block; }
+h1, h2, h3, p { margin: 0; }
+.app { position: relative; height: 100%; display: flex; flex-direction: column; }
+.layout { flex: 1 1 auto; min-height: 0; display: flex; }
+.pane { flex: 1 1 auto; min-width: 0; min-height: 0; display: none; flex-direction: column; position: relative; }
+.app[data-layout=phone] .pane.on { display: flex; }
+.app[data-layout=wide] .layout { gap: 14px; padding: 14px; }
+.app[data-layout=wide] .pane { display: flex; border-radius: 24px; overflow: hidden; background: var(--card); border: 1px solid var(--line); }
+.app[data-layout=wide] #paneRooms { flex: 0 0 min(380px, 32%); }
+.app[data-layout=wide] #paneBrowse { flex: 0 0 min(360px, 30%); }
+.app[data-layout=wide] #paneZone { border: none; }
+.app[data-layout=wide] .back { display: none; }
+.app[data-layout=mini] .layout, .app[data-layout=mini] .tabbar { display: none; }
+.mini { display: none; }
+.app[data-layout=mini] .mini { display: flex; }
+.scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 18px 28px; display: flex; flex-direction: column; gap: 14px; }
+.eyebrow { font-size: 12px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; font-weight: 600; }
+.h1 { font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+.sec { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; margin-top: 4px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.muted { color: var(--muted); }
+.dim { color: var(--dim); }
+.small { font-size: 12px; }
+
+.iconbtn { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line2); background: var(--card); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.iconbtn.ghost { border: none; background: transparent; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid var(--line2); background: var(--card); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; }
+.chip.hot { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); }
+.btn { white-space: nowrap; height: 44px; padding: 0 16px; border-radius: 14px; border: none; background: var(--card2); font-weight: 500; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; height: 52px; border-radius: 16px; font-size: 16px; }
+.btn.block { width: 100%; }
+
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.card.live { border-color: var(--accent-line); }
+.zrow { display: flex; align-items: center; gap: 12px; }
+.zhead { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; background: none; border: none; padding: 0; text-align: left; }
+.cover { flex: none; border-radius: 12px; overflow: hidden; background: var(--card2); position: relative; }
+.cover img, .cover svg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.c60 { width: 60px; height: 60px; }
+.c44 { width: 44px; height: 44px; border-radius: 9px; }
+.ztext { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.zlabel { font-size: 12px; font-weight: 600; color: var(--accent-text); }
+.ztitle { font-size: 16px; font-weight: 600; }
+.zsub { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; min-width: 0; }
+.play { width: 48px; height: 48px; border-radius: 24px; border: none; background: var(--accent); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.play.sec2 { background: var(--card2); color: var(--text); border: 1px solid var(--line2); }
+.bar { height: 3px; border-radius: 2px; background: var(--line2); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; }
+.avatar { width: 18px; height: 18px; border-radius: 9px; color: #0E1014; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.avatar.l { width: 32px; height: 32px; border-radius: 16px; font-size: 13px; }
+.badge { font-size: 10px; color: var(--accent-text); border: 1px solid #5A4A2A; border-radius: 6px; padding: 1px 5px; font-weight: 500; }
+
+.vlist { display: flex; flex-direction: column; gap: 2px; }
+.vrow { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.vname { width: 104px; flex: none; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.vval { width: 28px; text-align: right; font-size: 13px; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+input[type=range] { flex: 1 1 auto; min-width: 0; height: 28px; accent-color: var(--accent); background: transparent; margin: 0; }
+
+.grid2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 10px 10px 10px 12px; display: flex; align-items: center; gap: 8px; min-height: 64px; }
+.tile .grow { display: flex; flex-direction: column; gap: 2px; }
+.tile .name { font-size: 14px; font-weight: 600; }
+.mini-btn { width: 40px; height: 40px; border-radius: 20px; border: 1px solid var(--line2); background: var(--card2); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.mini-btn.hot { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); }
+.hint { background: var(--card); border: 1px dashed var(--line2); border-radius: 18px; padding: 14px; font-size: 13px; color: var(--muted); }
+.banner { margin: 10px 14px 0; padding: 10px 12px; border-radius: 12px; background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-text); font-size: 13px; }
+
+/* Zone / Now Playing */
+#paneZone { background: var(--amb); transition: background .6s ease; }
+.ztop { flex: none; height: 56px; padding: 0 8px; display: flex; align-items: center; gap: 4px; }
+.ztop .center { flex: 1 1 auto; min-width: 0; text-align: center; }
+.np { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 22px 24px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.np .bigcover { width: min(78vw, 46vh, 340px); height: min(78vw, 46vh, 340px); border-radius: 24px; box-shadow: 0 24px 48px rgba(0,0,0,.45); }
+.app[data-layout=wide] .np .bigcover { width: min(36vw, 46vh, 360px); height: min(36vw, 46vh, 360px); }
+.np .meta { width: 100%; max-width: 460px; display: flex; align-items: center; gap: 12px; }
+.np .title { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.np .artist { font-size: 15px; color: rgba(255,255,255,.74); }
+.np .progress { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 2px; }
+.np .times { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,.74); font-variant-numeric: tabular-nums; }
+.controls { width: 100%; max-width: 460px; display: flex; align-items: center; justify-content: space-between; }
+.ctl { width: 52px; height: 52px; border: none; background: transparent; display: inline-flex; align-items: center; justify-content: center; border-radius: 26px; color: var(--text); }
+.ctl.small { width: 44px; height: 44px; color: rgba(255,255,255,.66); }
+.ctl.on { color: var(--accent); }
+.ctl.big { width: 76px; height: 76px; border-radius: 38px; background: var(--accent); color: var(--accent-ink); }
+.panel { width: 100%; max-width: 460px; padding: 14px; border-radius: 18px; background: rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 8px; }
+.panel .vname { color: rgba(255,255,255,.8); }
+.linkrow { width: 100%; max-width: 460px; display: flex; gap: 8px; flex-wrap: wrap; }
+.linkrow .btn { flex: 1 1 140px; background: rgba(255,255,255,.08); }
+.pill { height: 36px; padding: 0 12px; border-radius: 18px; border: 1px solid rgba(255,255,255,.18); background: transparent; font-size: 13px; font-weight: 500; }
+.empty { width: 100%; max-width: 460px; text-align: center; color: rgba(255,255,255,.74); padding: 12px 0; }
+
+/* Browse */
+.btop { flex: none; padding: 16px 14px 8px 8px; display: flex; align-items: center; gap: 4px; }
+.btop .h { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+.seg { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 16px; background: var(--card2); border: 1px solid var(--line); }
+.app[data-layout=wide] .seg { background: var(--bg); }
+.seg button { height: 42px; border-radius: 12px; border: none; background: transparent; color: var(--muted); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+.seg button[aria-pressed=true] { background: var(--line2); color: var(--text); }
+.target { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); }
+.app[data-layout=wide] .target { background: var(--bg); }
+.target select { flex: 1 1 auto; min-width: 0; height: 36px; border-radius: 10px; border: 1px solid var(--line2); background: var(--card); color: var(--text); font: inherit; padding: 0 8px; }
+.list { display: flex; flex-direction: column; }
+.item { display: flex; align-items: center; gap: 12px; min-height: 58px; border-bottom: 1px solid var(--line); }
+.item:last-child { border-bottom: none; }
+.item .open { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 12px; background: none; border: none; padding: 7px 0; text-align: left; }
+.item .open[disabled] { cursor: default; color: var(--muted); }
+.thumb { width: 44px; height: 44px; border-radius: 9px; overflow: hidden; background: var(--card2); flex: none; display: flex; align-items: center; justify-content: center; color: var(--dim); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.search { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 6px 0 12px; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); margin: 6px 0; }
+.search input { flex: 1 1 auto; min-width: 0; height: 40px; border: none; background: transparent; color: var(--text); font: inherit; outline: none; }
+.skel { height: 58px; border-radius: 12px; background: linear-gradient(90deg, var(--card2), var(--line), var(--card2)); background-size: 200% 100%; animation: sk 1.2s linear infinite; margin-bottom: 6px; }
+@keyframes sk { from { background-position: 200% 0; } to { background-position: 0 0; } }
+
+/* Tabbar */
+.tabbar { flex: none; height: 64px; border-top: 1px solid var(--card2); background: var(--bg); display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.app[data-layout=phone] .tabbar { display: grid; }
+.tab { border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.tab[aria-current=page] { color: var(--accent); }
+
+/* Sheets */
+.sheet-wrap { position: absolute; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: flex-end; justify-content: center; z-index: 10; }
+.sheet-wrap[hidden] { display: none; }
+.sheet { width: 100%; max-width: 520px; max-height: 88%; background: var(--card); border: 1px solid var(--line); border-bottom: none; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; }
+.app[data-layout=wide] .sheet-wrap { align-items: center; }
+.app[data-layout=wide] .sheet { border-radius: 24px; border-bottom: 1px solid var(--line); }
+.sheet .shead { padding: 18px 18px 6px; display: flex; align-items: flex-start; gap: 8px; }
+.sheet .sbody { overflow-y: auto; padding: 6px 18px 12px; display: flex; flex-direction: column; gap: 12px; }
+.sheet .sfoot { padding: 12px 18px 18px; border-top: 1px solid var(--card2); }
+.checkrow { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 6px 12px; border-bottom: 1px solid var(--card2); cursor: pointer; }
+.checkrow:last-child { border-bottom: none; }
+.checkrow input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+.group { background: var(--bg); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.warn { padding: 10px 12px; border-radius: 12px; background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-text); font-size: 13px; }
+
+/* Mini */
+.mini { height: 100%; align-items: center; gap: 10px; padding: 8px; }
+.mini .cover { height: calc(100% - 0px); max-height: 96px; aspect-ratio: 1 / 1; width: auto; }
+</style>
+
+<div class="app" id="app" data-layout="phone">
+  <div class="banner" id="offline" hidden>Lyrion Music Server ist nicht erreichbar. Anzeige ist veraltet.</div>
+  <div class="layout">
+    <section class="pane on" id="paneRooms" aria-label="Räume"></section>
+    <section class="pane" id="paneZone" aria-label="Wiedergabe"></section>
+    <section class="pane" id="paneBrowse" aria-label="Spotify"></section>
+  </div>
+  <div class="mini" id="mini"></div>
+  <nav class="tabbar" id="tabbar" aria-label="Navigation">
+    <button class="tab" data-act="tab" data-v="rooms">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"></rect><circle cx="12" cy="14" r="3"></circle><circle cx="12" cy="7.5" r="1"></circle></svg>
+      Räume
+    </button>
+    <button class="tab" data-act="tab" data-v="browse">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18V6l10-2v12"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg>
+      Spotify
+    </button>
+  </nav>
+  <div class="sheet-wrap" id="sheetWrap" hidden></div>
+</div>
+
+<script>
+'use strict';
+/* ------------------------------------------------------------------ Zustand */
+var S = {
+  st: null, covers: {}, thumbs: {}, recvAt: 0,
+  layout: 'phone', view: 'rooms', zoneSel: null, target: null,
+  browse: { stack: [], items: [], req: null, loading: false, error: false, loaded: false, account: null },
+  sheet: null, pending: {}, drag: null, dirty: false, raf: 0, sendTimers: {}
+};
+
+/* ------------------------------------------------------------------ Icons */
+var I = (function () {
+  var s = function (w, body, fill) {
+    return '<svg width="' + w + '" height="' + w + '" viewBox="0 0 24 24" ' + (fill ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"') + ' aria-hidden="true">' + body + '</svg>';
+  };
+  return {
+    play: function (w) { return s(w || 20, '<path d="M8 5l11 7-11 7z"></path>', true); },
+    pause: function (w) { return s(w || 20, '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>', true); },
+    next: function (w) { return s(w || 28, '<path d="M6 5l10 7-10 7z"></path><rect x="16.5" y="5" width="2.5" height="14" rx="1"></rect>', true); },
+    prev: function (w) { return s(w || 28, '<path d="M18 5L8 12l10 7z"></path><rect x="5" y="5" width="2.5" height="14" rx="1"></rect>', true); },
+    shuffle: function (w) { return s(w || 22, '<path d="M4 7h3l10 10h3"></path><path d="M4 17h3l3-3"></path><path d="M14 10l3-3h3"></path><path d="M18 5l2 2-2 2"></path><path d="M18 15l2 2-2 2"></path>'); },
+    repeat: function (w, one) { return s(w || 22, '<path d="M4 12V9a3 3 0 0 1 3-3h12"></path><path d="M16 3l3 3-3 3"></path><path d="M20 12v3a3 3 0 0 1-3 3H5"></path><path d="M8 21l-3-3 3-3"></path>' + (one ? '<path d="M12 10v5"></path>' : '')); },
+    power: function (w) { return s(w || 20, '<path d="M12 3v8"></path><path d="M6.3 7.3a8 8 0 1 0 11.4 0"></path>'); },
+    plus: function (w) { return s(w || 18, '<path d="M12 5v14"></path><path d="M5 12h14"></path>'); },
+    close: function (w) { return s(w || 20, '<path d="M6 6l12 12"></path><path d="M18 6L6 18"></path>'); },
+    back: function (w) { return s(w || 22, '<path d="M15 6l-6 6 6 6"></path>'); },
+    chev: function (w) { return s(w || 18, '<path d="M9 6l6 6-6 6"></path>'); },
+    speaker: function (w) { return s(w || 16, '<path d="M4 10v4h4l5 4V6L8 10z"></path><path d="M16 9a4 4 0 0 1 0 6"></path>'); },
+    mute: function (w) { return s(w || 16, '<path d="M4 10v4h4l5 4V6L8 10z"></path><path d="M17 9l4 6"></path><path d="M21 9l-4 6"></path>'); },
+    note: function (w) { return s(w || 18, '<path d="M9 18V6l10-2v12"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle>'); },
+    search: function (w) { return s(w || 18, '<circle cx="11" cy="11" r="6"></circle><path d="M20 20l-4.5-4.5"></path>'); },
+    folder: function (w) { return s(w || 18, '<path d="M4 6h6l2 2h8v10H4z"></path>'); },
+    house: function (w) { return s(w || 16, '<path d="M4 11l8-7 8 7"></path><path d="M6 10v10h12V10"></path>'); },
+    zone: function (w) { return s(w || 16, '<rect x="3" y="6" width="7" height="12" rx="1.5"></rect><rect x="14" y="6" width="7" height="12" rx="1.5"></rect><path d="M10 12h4"></path>'); },
+    refresh: function (w) { return s(w || 18, '<path d="M20 11a8 8 0 1 0-2.3 5.7"></path><path d="M20 5v6h-6"></path>'); }
+  };
+})();
+
+/* ------------------------------------------------------------------ Hilfen */
+function $(sel, root) { return (root || document).querySelector(sel); }
+function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function hash(str) { var h = 0; str = String(str || ''); for (var i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; } return Math.abs(h); }
+function fmt(sec) { sec = Math.max(0, Math.floor(sec || 0)); var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0'); }
+function send(o) {
+  try { requestAction('UI', JSON.stringify(o)); } catch (e) { if (window.console) console.warn('requestAction', e); }
+}
+function sendThrottled(key, o, ms) {
+  var t = S.sendTimers[key];
+  if (t && t.timer) { t.last = o; return; }
+  send(o);
+  S.sendTimers[key] = { last: null, timer: setTimeout(function () { var x = S.sendTimers[key]; S.sendTimers[key] = null; if (x && x.last) send(x.last); }, ms) };
+}
+var ACC_COLORS = ['#8FB4FF', '#FF9F7A', '#B5E28A', '#F5D76E', '#C9A7FF', '#7FD6C2'];
+function accColor(id) { var list = (S.st && S.st.accounts) || []; var i = list.findIndex(function (a) { return a.id === id; }); return ACC_COLORS[(i >= 0 ? i : hash(id)) % ACC_COLORS.length]; }
+function accName(id) { var a = ((S.st && S.st.accounts) || []).find(function (x) { return x.id === id; }); return a ? a.name : ''; }
+function initial(name) { return esc((String(name || '?').trim()[0] || '?').toUpperCase()); }
+function avatar(id, cls) { var n = accName(id); return '<span class="avatar ' + (cls || '') + '" style="background:' + accColor(id) + '">' + initial(n) + '</span>'; }
+
+/* ------------------------------------------------------------------ Daten */
+function players() { return (S.st && S.st.players) || []; }
+function zones() { return (S.st && S.st.zones) || []; }
+function player(id) { return players().find(function (p) { return p.id === id; }) || null; }
+function pname(id) { var p = player(id); return p ? p.name : id; }
+function zoneOf(id) { return zones().find(function (z) { return z.id === id || z.members.indexOf(id) >= 0; }) || null; }
+function zoneName(z) { var n = z.members.map(pname); return n.length > 1 ? n[0] + ' + ' + (n.length - 1) : n[0]; }
+function zoneLabel(z) { if (z.members.length > 1) return 'Zone · ' + z.members.length + ' Räume'; var p = player(z.id); return (p && p.area) ? p.area : 'Raum'; }
+function effMode(z) { var p = S.pending[z.id]; if (p && p.until > Date.now()) return p.mode; return z.mode; }
+function isActive(z) { var m = effMode(z); return z.power && z.hasTrack && (m === 'play' || m === 'pause'); }
+function primaryZone() {
+  var zs = zones();
+  return zs.find(function (z) { return effMode(z) === 'play'; }) || zs.find(isActive) || zs.find(function (z) { return z.hasTrack; }) || zs[0] || null;
+}
+function currentZone() { return (S.zoneSel && zoneOf(S.zoneSel)) || primaryZone(); }
+function targetZone() { return (S.target && zoneOf(S.target)) || currentZone(); }
+function zoneVolume(z) { var v = z.members.map(function (id) { var p = player(id); return p ? p.volume : 0; }); return v.length ? Math.round(v.reduce(function (a, b) { return a + b; }, 0) / v.length) : 0; }
+function position(z) {
+  var t = z.time || 0;
+  if (effMode(z) === 'play' && S.recvAt) t += (Date.now() - S.recvAt) / 1000;
+  return z.duration > 0 ? Math.min(t, z.duration) : t;
+}
+function hasAreas() { return players().some(function (p) { return p.area; }); }
+function byArea(list, areaOf) {
+  var order = [], groups = {};
+  list.forEach(function (x) { var a = areaOf(x) || ''; if (!(a in groups)) { groups[a] = []; order.push(a); } groups[a].push(x); });
+  order.sort(function (a, b) { return a === '' ? 1 : b === '' ? -1 : 0; });
+  return order.map(function (a) { return { area: a, items: groups[a] }; });
+}
+
+/* ------------------------------------------------------------------ Cover */
+var PAL = [['#2B1D3F', '#FFB547', '#5B3A7A'], ['#12343B', '#7FD6C2', '#2F6F73'], ['#1B2440', '#8FB4FF', '#33467A'], ['#3A2414', '#FF9F7A', '#7A4A2E'], ['#1E2A22', '#B5E28A', '#3E5A35']];
+function placeholder(seed) {
+  var p = PAL[hash(seed) % PAL.length];
+  return '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="100" height="100" fill="' + p[0] + '"></rect><circle cx="66" cy="36" r="22" fill="' + p[1] + '"></circle><path d="M0 76 Q 33 58 100 72 L100 100 L0 100 Z" fill="' + p[2] + '"></path></svg>';
+}
+function coverHTML(z, cls) {
+  var src = z && z.cover && S.covers[z.cover];
+  return '<div class="cover ' + cls + '">' + (src ? '<img src="' + src + '" alt="">' : placeholder(z ? (z.title || z.id) : '')) + '</div>';
+}
+var AMB = {};
+function ambient(key) {
+  if (!key || !S.covers[key]) return null;
+  if (key in AMB) return AMB[key];
+  AMB[key] = null;
+  var img = new Image();
+  img.onload = function () {
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 12;
+      var x = c.getContext('2d'); x.drawImage(img, 0, 0, 12, 12);
+      var d = x.getImageData(0, 0, 12, 12).data, r = 0, g = 0, b = 0, n = 0;
+      for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+      var mix = function (v) { return Math.round((v / n) * 0.34 + 14 * 0.66); };
+      AMB[key] = 'rgb(' + mix(r) + ',' + mix(g) + ',' + mix(b) + ')';
+    } catch (e) { AMB[key] = null; }
+    render();
+  };
+  img.src = S.covers[key];
+  return null;
+}
+
+/* ------------------------------------------------------------------ Nachrichten vom Modul */
+function handleMessage(data) {
+  var m;
+  try { m = typeof data === 'string' ? JSON.parse(data) : data; } catch (e) { return; }
+  if (!m || !m.t) return;
+  if (m.t === 'state') {
+    S.st = m; S.recvAt = Date.now();
+    Object.keys(S.pending).forEach(function (id) {
+      var z = zones().find(function (x) { return x.id === id; });
+      if (!z || z.mode === S.pending[id].mode || S.pending[id].until < Date.now()) delete S.pending[id];
+    });
+    var t = targetZone();
+    if (t && S.browse.loaded && S.browse.account !== null && t.account !== S.browse.account && !S.browse.loading) {
+      browseReset();
+    }
+  } else if (m.t === 'covers') {
+    for (var k in (m.covers || {})) { S.covers[k] = m.covers[k]; }
+    var keys = Object.keys(S.covers);
+    while (keys.length > 16) { delete S.covers[keys.shift()]; }
+  } else if (m.t === 'browse') {
+    if (m.req !== S.browse.req) return;
+    S.browse.loading = false; S.browse.error = !!m.error; S.browse.items = m.items || []; S.thumbs = {};
+  } else if (m.t === 'thumbs') {
+    if (m.req !== S.browse.req) return;
+    for (var j in (m.images || {})) { S.thumbs[j] = m.images[j]; }
+  }
+  render();
+}
+
+/* ------------------------------------------------------------------ Rendering */
+function render() {
+  if (S.drag) { S.dirty = true; return; }
+  if (S.raf) return;
+  S.raf = requestAnimationFrame(function () { S.raf = 0; renderNow(); });
+}
+function keepScroll(fn) {
+  var pos = {};
+  document.querySelectorAll('[data-scroll]').forEach(function (el) { pos[el.getAttribute('data-scroll')] = el.scrollTop; });
+  fn();
+  document.querySelectorAll('[data-scroll]').forEach(function (el) { var k = el.getAttribute('data-scroll'); if (k in pos) el.scrollTop = pos[k]; });
+}
+function renderNow() {
+  var app = $('#app');
+  app.setAttribute('data-layout', S.layout);
+  $('#offline').hidden = !(S.st && !S.st.online);
+  keepScroll(function () {
+    if (S.layout === 'mini') { renderMini(); return; }
+    if (S.layout === 'wide' || S.view === 'rooms') renderRooms();
+    if (S.layout === 'wide' || S.view === 'zone') renderZone();
+    if (S.layout === 'wide' || S.view === 'browse') renderBrowse();
+    ['rooms', 'zone', 'browse'].forEach(function (v) {
+      $('#pane' + v[0].toUpperCase() + v.slice(1)).classList.toggle('on', S.view === v);
+    });
+    document.querySelectorAll('.tab').forEach(function (b) {
+      var cur = b.getAttribute('data-v') === S.view || (S.view === 'zone' && b.getAttribute('data-v') === 'rooms');
+      if (cur) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    renderSheet();
+  });
+  if ((S.layout === 'wide' || S.view === 'browse') && S.st && S.st.spotify && !S.browse.loaded && !S.browse.loading) browseLoad();
+}
+
+function playButton(z, cls) {
+  var playing = effMode(z) === 'play';
+  return '<button class="play ' + (cls || '') + '" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + (playing ? 'Pause' : 'Wiedergabe') + ' ' + esc(zoneName(z)) + '">' + (playing ? I.pause() : I.play()) + '</button>';
+}
+function volRow(id, label, extra) {
+  var p = player(id); if (!p) return '';
+  return '<div class="vrow">' +
+    '<span class="vname ellipsis">' + esc(label || p.name) + (extra || '') + '</span>' +
+    '<button class="iconbtn ghost" style="width:32px;height:32px" data-act="mute" data-p="' + esc(id) + '" data-v="' + (p.muted ? 0 : 1) + '" aria-label="' + (p.muted ? 'Ton an' : 'Stumm') + ' ' + esc(p.name) + '">' + (p.muted ? I.mute() : I.speaker()) + '</button>' +
+    '<input type="range" min="0" max="100" step="1" value="' + p.volume + '" data-act="vol" data-p="' + esc(id) + '" aria-label="Lautstärke ' + esc(p.name) + '">' +
+    '<span class="vval" data-vval="' + esc(id) + '">' + p.volume + '</span></div>';
+}
+function accountLine(z) {
+  if (!S.st.spotify || !z.account || (S.st.accounts || []).length < 2) return '';
+  return '<span title="Spotify: ' + esc(z.accountName || accName(z.account)) + '">' + avatar(z.account) + '</span>';
+}
+
+function zoneCard(z) {
+  var live = isActive(z);
+  var sub = [];
+  if (z.hasTrack) { sub.push(esc(z.artist || (z.remote ? 'Stream' : ''))); } else { sub.push(z.power ? 'Bereit' : 'Aus'); }
+  var acc = accountLine(z);
+  var h = '<article class="card ' + (live ? 'live' : '') + '">' +
+    '<div class="zrow"><button class="zhead" data-act="openZone" data-p="' + esc(z.id) + '">' + coverHTML(z, 'c60') +
+    '<span class="ztext"><span class="zlabel">' + esc(z.members.length > 1 ? zoneLabel(z) : zoneName(z)) + '</span>' +
+    '<span class="ztitle ellipsis">' + esc(z.hasTrack ? (z.title || 'Unbekannter Titel') : 'Nichts in der Warteschlange') + '</span>' +
+    '<span class="zsub">' + acc + '<span class="ellipsis">' + sub.join('') + '</span></span></span></button>' +
+    (z.hasTrack ? playButton(z) : '') + '</div>';
+  if (z.hasTrack && z.duration > 0) {
+    h += '<div class="bar"><i data-prog="' + esc(z.id) + '" style="width:' + (100 * position(z) / z.duration).toFixed(1) + '%"></i></div>';
+  }
+  h += '<div class="vlist">' + z.members.map(function (id, i) {
+    return volRow(id, z.members.length > 1 ? pname(id) : 'Lautstärke');
+  }).join('') + '</div>';
+  var btns = [];
+  if (players().length > 1) btns.push('<button class="btn" data-act="editZone" data-p="' + esc(z.id) + '">' + I.zone() + (z.members.length > 1 ? 'Zone ändern' : 'Räume verbinden') + '</button>');
+  if (S.st.spotify) btns.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + 'Spotify</button>');
+  if (btns.length) h += '<div class="row" style="gap:8px">' + btns.map(function (b) { return b.replace('class="btn"', 'class="btn" style="flex:1 1 0"'); }).join('') + '</div>';
+  return h + '</article>';
+}
+
+function idleTile(z, joinTo) {
+  var p = player(z.id);
+  var state = !p || !p.connected ? 'getrennt' : (z.power ? (z.hasTrack ? 'pausiert' : 'bereit') : 'aus');
+  var h = '<div class="tile"><button class="grow" style="background:none;border:none;padding:0;text-align:left" data-act="openZone" data-p="' + esc(z.id) + '">' +
+    '<span class="name ellipsis">' + esc(zoneName(z)) + '</span><span class="small dim">' + esc((p && p.area ? p.area + ' · ' : '') + state) + '</span></button>';
+  if (z.hasTrack) h += '<button class="mini-btn" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + esc(zoneName(z)) + ' abspielen">' + I.play(16) + '</button>';
+  if (joinTo) h += '<button class="mini-btn hot" data-act="join" data-p="' + esc(joinTo.id) + '" data-v="' + esc(z.id) + '" aria-label="' + esc(zoneName(z)) + ' zu ' + esc(zoneName(joinTo)) + ' hinzufügen">' + I.plus() + '</button>';
+  return h + '</div>';
+}
+
+function renderRooms() {
+  var el = $('#paneRooms');
+  if (!S.st) { el.innerHTML = '<div class="scroll"><div class="eyebrow">Lyrion</div><div class="h1">Räume</div><div class="skel"></div><div class="skel"></div></div>'; return; }
+  var zs = zones(), multi = players().length > 1;
+  var anyPlaying = zs.some(function (z) { return effMode(z) === 'play'; });
+  var h = '<div class="scroll" data-scroll="rooms"><div class="row" style="align-items:flex-end"><div class="grow"><div class="eyebrow">Musik im Haus</div><h1 class="h1">Räume</h1></div>' +
+    (anyPlaying ? '<button class="iconbtn" data-act="pauseAll" aria-label="Alles pausieren">' + I.pause(18) + '</button>' : '') + '</div>';
+  if (multi) {
+    h += '<div class="chips"><button class="chip hot" data-act="party">' + I.house() + 'Ganzes Haus</button>' +
+      (anyPlaying ? '<button class="chip" data-act="pauseAll">Alles pausieren</button>' : '') + '</div>';
+  }
+  if (zs.length === 0) {
+    h += '<div class="hint">Keine Player sichtbar. Prüfe die Instanz-Konfiguration in Symcon.</div>';
+  } else if (zs.length === 1) {
+    h += zoneCard(zs[0]);
+  } else {
+    var active = zs.filter(isActive), idle = zs.filter(function (z) { return !isActive(z); });
+    var joinTo = active.length ? (active.find(function (z) { return effMode(z) === 'play'; }) || active[0]) : null;
+    if (active.length) h += '<h2 class="sec">Aktiv</h2>' + active.map(zoneCard).join('');
+    if (idle.length) {
+      h += '<h2 class="sec">' + (active.length ? 'Bereit' : 'Räume') + '</h2>';
+      if (hasAreas()) {
+        byArea(idle, function (z) { var p = player(z.id); return p ? p.area : ''; }).forEach(function (g) {
+          h += '<div class="small muted" style="font-weight:600">' + esc(g.area || 'Weitere') + '</div><div class="grid2">' + g.items.map(function (z) { return idleTile(z, joinTo); }).join('') + '</div>';
+        });
+      } else {
+        h += '<div class="grid2">' + idle.map(function (z) { return idleTile(z, joinTo); }).join('') + '</div>';
+      }
+    }
+  }
+  if (!multi && zs.length === 1) {
+    h += '<div class="hint">Weitere Player erscheinen hier automatisch, sobald sie im Lyrion auftauchen. Dann lassen sich Räume zu Zonen verbinden.</div>';
+  }
+  el.innerHTML = h + '</div>';
+}
+
+function renderZone() {
+  var el = $('#paneZone');
+  var z = currentZone();
+  if (!S.st || !z) { el.innerHTML = '<div class="np"><div class="empty">Kein Player ausgewählt.</div></div>'; el.style.setProperty('--amb', '#150F1E'); return; }
+  el.style.setProperty('--amb', ambient(z.cover) || '#150F1E');
+  var playing = effMode(z) === 'play';
+  var multiMembers = z.members.length > 1;
+  var h = '<div class="ztop"><button class="iconbtn ghost back" data-act="tab" data-v="rooms" aria-label="Zurück zu den Räumen">' + I.back() + '</button>' +
+    '<div class="center"><div class="small" style="color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.06em">' + esc(multiMembers ? 'Zone' : zoneLabel(z)) + '</div><div class="ellipsis" style="font-weight:600">' + esc(zoneName(z)) + '</div></div>' +
+    '<button class="iconbtn ghost" data-act="power" data-p="' + esc(z.id) + '" data-v="' + (z.power ? 0 : 1) + '" aria-label="' + (z.power ? 'Ausschalten' : 'Einschalten') + '" style="color:' + (z.power ? 'var(--accent)' : 'rgba(255,255,255,.6)') + '">' + I.power() + '</button></div>';
+  h += '<div class="np" data-scroll="zone">' + coverHTML(z, 'bigcover');
+  if (z.hasTrack) {
+    h += '<div class="meta"><div class="grow"><div class="title ellipsis">' + esc(z.title || 'Unbekannter Titel') + '</div><div class="artist ellipsis">' + esc([z.artist, z.album].filter(Boolean).join(' · ')) + '</div></div></div>';
+    if (z.duration > 0) {
+      var pos = position(z);
+      h += '<div class="progress">' + (z.canSeek
+        ? '<input type="range" min="0" max="' + Math.floor(z.duration) + '" step="1" value="' + Math.floor(pos) + '" data-act="seek" data-p="' + esc(z.id) + '" data-seek="' + esc(z.id) + '" aria-label="Position">'
+        : '<div class="bar" style="background:rgba(255,255,255,.16)"><i data-prog="' + esc(z.id) + '" style="background:#F3F4F6;width:' + (100 * pos / z.duration).toFixed(1) + '%"></i></div>') +
+        '<div class="times"><span data-time="' + esc(z.id) + '">' + fmt(pos) + '</span><span>' + fmt(z.duration) + '</span></div></div>';
+    }
+    h += '<div class="controls">' +
+      '<button class="ctl small ' + (z.shuffle ? 'on' : '') + '" data-act="shuffle" data-p="' + esc(z.id) + '" data-v="' + (z.shuffle ? 0 : 1) + '" aria-pressed="' + (z.shuffle ? 'true' : 'false') + '" aria-label="Zufallswiedergabe">' + I.shuffle() + '</button>' +
+      '<button class="ctl" data-act="prev" data-p="' + esc(z.id) + '" aria-label="Vorheriger Titel">' + I.prev() + '</button>' +
+      '<button class="ctl big" data-act="toggle" data-p="' + esc(z.id) + '" aria-label="' + (playing ? 'Pause' : 'Wiedergabe') + '">' + (playing ? I.pause(30) : I.play(30)) + '</button>' +
+      '<button class="ctl" data-act="next" data-p="' + esc(z.id) + '" aria-label="Nächster Titel">' + I.next() + '</button>' +
+      '<button class="ctl small ' + (z.repeat ? 'on' : '') + '" data-act="repeat" data-p="' + esc(z.id) + '" data-v="' + ({ 0: 2, 2: 1, 1: 0 })[z.repeat] + '" aria-label="Wiederholen: ' + ['aus', 'Titel', 'Liste'][z.repeat] + '">' + I.repeat(22, z.repeat === 1) + '</button></div>';
+  } else {
+    h += '<div class="empty">Hier läuft gerade nichts.' + (S.st.spotify ? ' Starte etwas aus Spotify.' : '') + '</div>';
+  }
+  h += '<div class="panel">';
+  if (multiMembers) {
+    var zv = zoneVolume(z);
+    h += '<div class="vrow"><span class="vname">' + I.speaker() + 'Zone</span><input type="range" min="0" max="100" step="1" value="' + zv + '" data-act="zoneVol" data-p="' + esc(z.id) + '" aria-label="Lautstärke der Zone"><span class="vval" data-vval="zone:' + esc(z.id) + '">' + zv + '</span></div>';
+    h += z.members.map(function (id) { return volRow(id, pname(id)); }).join('');
+  } else {
+    h += volRow(z.id, 'Lautstärke');
+  }
+  h += '</div>';
+  if (S.st.spotify && (S.st.accounts || []).length) {
+    h += '<div class="panel" style="flex-direction:row;align-items:center;gap:10px">' + (z.account ? avatar(z.account, 'l') : '') +
+      '<div class="grow"><div style="font-weight:600" class="ellipsis">Spotify · ' + esc(z.accountName || accName(z.account) || 'kein Konto') + '</div><div class="small" style="color:rgba(255,255,255,.7)">' + (multiMembers ? 'gilt für die ganze Zone' : 'gilt für diesen Raum') + '</div></div>' +
+      ((S.st.accounts || []).length > 1 ? '<button class="pill" data-act="accountSheet" data-p="' + esc(z.id) + '">Wechseln</button>' : '') + '</div>';
+  }
+  var links = [];
+  if (S.st.spotify) links.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + 'Spotify durchsuchen</button>');
+  if (players().length > 1) links.push('<button class="btn" data-act="editZone" data-p="' + esc(z.id) + '">' + I.zone() + 'Zone bearbeiten</button>');
+  if (links.length) h += '<div class="linkrow">' + links.join('') + '</div>';
+  el.innerHTML = h + '</div>';
+}
+
+function renderBrowse() {
+  var el = $('#paneBrowse');
+  var b = S.browse, top = b.stack[b.stack.length - 1];
+  var h = '<div class="btop">' + (b.stack.length ? '<button class="iconbtn ghost" data-act="browseBack" aria-label="Zurück">' + I.back() + '</button>' : '<span style="width:10px"></span>') +
+    '<div class="h grow ellipsis">' + esc(top ? top.name : 'Spotify') + '</div>' +
+    (S.st && S.st.spotify ? '<button class="iconbtn ghost" data-act="browseReload" aria-label="Neu laden">' + I.refresh() + '</button>' : '') + '</div>';
+  h += '<div class="scroll" data-scroll="browse" style="padding-top:4px">';
+  if (!S.st) { el.innerHTML = h + '<div class="skel"></div><div class="skel"></div></div>'; return; }
+  if (!S.st.spotify) {
+    el.innerHTML = h + '<div class="hint">Das Spotify-Plugin wurde im Lyrion nicht gefunden. Prüfe, ob SpotOn installiert ist und ob in der Instanz der richtige Plugin-Befehl eingetragen ist.</div></div>';
+    return;
+  }
+  var t = targetZone();
+  var accounts = S.st.accounts || [];
+  if (!b.stack.length) {
+    if (accounts.length > 1 && t) {
+      h += '<div class="seg" role="group" aria-label="Spotify-Konto">' + accounts.map(function (a) {
+        return '<button data-act="account" data-p="' + esc(t.id) + '" data-v="' + esc(a.id) + '" aria-pressed="' + (t.account === a.id ? 'true' : 'false') + '">' +
+          '<span class="avatar" style="width:24px;height:24px;border-radius:12px;font-size:11px;background:' + accColor(a.id) + '">' + initial(a.name) + '</span><span class="ellipsis">' + esc(a.name) + '</span></button>';
+      }).join('') + '</div>';
+    }
+    if (zones().length > 1) {
+      h += '<label class="target"><span class="small muted">Abspielen in</span><select data-act="target" aria-label="Abspielen in">' + zones().map(function (z) {
+        return '<option value="' + esc(z.id) + '"' + (t && t.id === z.id ? ' selected' : '') + '>' + esc(zoneName(z)) + '</option>';
+      }).join('') + '</select></label>';
+    } else if (t) {
+      h += '<div class="small muted">Spielt in: ' + esc(zoneName(t)) + '</div>';
+    }
+  }
+  if (b.loading) {
+    h += '<div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+  } else if (b.error) {
+    h += '<div class="hint">Laden fehlgeschlagen. <button class="pill" data-act="browseReload" style="color:var(--text);margin-left:6px">Erneut versuchen</button></div>';
+  } else if (!b.items.length) {
+    h += '<div class="hint">Keine Einträge.</div>';
+  } else {
+    var order = b.items.map(function (it, i) { return i; });
+    order.sort(function (a, c) { return (b.items[a].type === 'search' ? 0 : 1) - (b.items[c].type === 'search' ? 0 : 1) || a - c; });
+    h += '<div class="list">' + order.map(function (i) {
+      var it = b.items[i];
+      if (it.type === 'search') {
+        return '<form class="search" data-act="search" data-i="' + i + '">' + I.search() + '<input type="search" name="q" placeholder="' + esc(it.name || 'Suchen') + '" aria-label="' + esc(it.name || 'Suchen') + '" enterkeyhint="search"></form>';
+      }
+      var thumb = S.thumbs[it.id] ? '<img src="' + S.thumbs[it.id] + '" alt="">' : (it.items && !it.audio ? I.folder() : I.note());
+      var clickable = it.items || it.audio;
+      return '<div class="item"><button class="open" data-act="item" data-i="' + i + '"' + (clickable ? '' : ' disabled') + '>' +
+        '<span class="thumb">' + thumb + '</span><span class="grow ellipsis" style="font-size:15px">' + esc(it.name) + '</span>' + (it.items ? '<span class="dim">' + I.chev() + '</span>' : '') + '</button>' +
+        (it.audio ? '<button class="mini-btn" data-act="playItem" data-i="' + i + '" aria-label="' + esc(it.name) + ' abspielen">' + I.play(16) + '</button>' : '') + '</div>';
+    }).join('') + '</div>';
+  }
+  el.innerHTML = h + '</div>';
+}
+
+function renderMini() {
+  var el = $('#mini'), z = primaryZone();
+  if (!z) { el.innerHTML = '<div class="small muted" style="padding:8px">Keine Player</div>'; return; }
+  el.innerHTML = coverHTML(z, '') + '<div class="grow ztext"><span class="zlabel ellipsis">' + esc(zoneName(z)) + '</span><span class="ztitle ellipsis">' + esc(z.hasTrack ? z.title : 'Bereit') + '</span><span class="small muted ellipsis">' + esc(z.artist || '') + '</span></div>' + (z.hasTrack ? playButton(z) : '');
+}
+
+function renderSheet() {
+  var wrap = $('#sheetWrap'), sh = S.sheet;
+  if (!sh || !S.st) { wrap.hidden = true; wrap.innerHTML = ''; return; }
+  var h = '';
+  if (sh.type === 'zone') {
+    var z = zoneOf(sh.zone);
+    var sel = sh.sel;
+    var rowHTML = function (p) {
+      var idx = sel.indexOf(p.id), checked = idx >= 0, other = zoneOf(p.id);
+      var busy = !checked && other && z && other.id !== z.id && isActive(other);
+      var sub = checked ? (idx === 0 ? 'Quelle der Zone' : 'synchron') : (busy ? (effMode(other) === 'play' ? 'spielt: ' : 'pausiert: ') + (other.title || zoneName(other)) : (p.connected ? (p.power ? 'bereit' : 'aus') : 'getrennt'));
+      return '<label class="checkrow"><span class="grow"><span style="font-weight:500;display:flex;gap:8px;align-items:center">' + esc(p.name) + (idx === 0 ? '<span class="badge">Master</span>' : '') + '</span>' +
+        '<span class="small" style="color:' + (busy ? '#FF9F7A' : 'var(--dim)') + '">' + esc(sub) + '</span></span>' +
+        '<input type="checkbox" data-act="zoneSel" data-p="' + esc(p.id) + '"' + (checked ? ' checked' : '') + ' aria-label="' + esc(p.name) + ' in die Zone"></label>';
+    };
+    var groups = hasAreas() ? byArea(players(), function (p) { return p.area; }) : [{ area: '', items: players() }];
+    var stealing = sel.some(function (id) { var o = zoneOf(id); return o && z && o.id !== z.id && isActive(o); });
+    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Zone bearbeiten"><div class="shead"><div class="grow"><div style="font-size:20px;font-weight:700">Welche Räume spielen mit?</div><div class="small muted" style="margin-top:4px">Markierte Räume laufen synchron. Der erste ist Master und bestimmt Quelle und Spotify-Konto.</div></div>' +
+      '<button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div><div class="sbody">' +
+      '<div class="chips"><button class="chip" data-act="zonePreset" data-v="all">Alle Räume</button><button class="chip" data-act="zonePreset" data-v="none">Nur ' + esc(pname(sh.zone)) + '</button></div>' +
+      groups.map(function (g) { return (g.area ? '<div class="sec">' + esc(g.area) + '</div>' : '') + '<div class="group">' + g.items.map(rowHTML).join('') + '</div>'; }).join('') +
+      (stealing ? '<div class="warn">Mindestens ein gewählter Raum hat gerade eine eigene Wiedergabe. Sie wird beendet, der Raum folgt dieser Zone.</div>' : '') +
+      '</div><div class="sfoot"><button class="btn primary block" data-act="applyZone">' + (sel.length <= 1 ? 'Zone auflösen' : 'Übernehmen · ' + sel.length + ' Räume') + '</button></div></div>';
+  } else if (sh.type === 'account') {
+    var za = zoneOf(sh.zone);
+    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Spotify-Konto"><div class="shead"><div class="grow"><div style="font-size:20px;font-weight:700">Spotify-Konto</div><div class="small muted" style="margin-top:4px">für ' + esc(za ? zoneName(za) : '') + '</div></div><button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div><div class="sbody"><div class="group">' +
+      (S.st.accounts || []).map(function (a) {
+        return '<button class="checkrow" style="width:100%;background:none;border:none;border-bottom:1px solid var(--card2);text-align:left" data-act="account" data-p="' + esc(sh.zone) + '" data-v="' + esc(a.id) + '" data-close="1">' +
+          '<span class="avatar l" style="background:' + accColor(a.id) + '">' + initial(a.name) + '</span><span class="grow" style="font-weight:500">' + esc(a.name) + '</span>' + (za && za.account === a.id ? '<span style="color:var(--accent)">aktiv</span>' : '') + '</button>';
+      }).join('') + '</div></div></div>';
+  } else if (sh.type === 'item') {
+    var it = sh.item, tz = targetZone();
+    h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="' + esc(it.name) + '"><div class="shead"><div class="grow"><div style="font-size:18px;font-weight:700">' + esc(it.name) + '</div><div class="small muted" style="margin-top:4px">in ' + esc(tz ? zoneName(tz) : '') + '</div></div><button class="iconbtn ghost" data-act="closeSheet" aria-label="Schließen">' + I.close() + '</button></div>' +
+      '<div class="sbody"><button class="btn primary block" data-act="itemMode" data-v="play">' + I.play(18) + 'Jetzt abspielen</button><button class="btn block" data-act="itemMode" data-v="insert">Als Nächstes</button><button class="btn block" data-act="itemMode" data-v="add">Am Ende anhängen</button></div></div>';
+  }
+  wrap.innerHTML = h;
+  wrap.hidden = false;
+}
+
+/* ------------------------------------------------------------------ Browse */
+function browseLoad() {
+  var t = targetZone();
+  if (!t) return;
+  var top = S.browse.stack[S.browse.stack.length - 1];
+  S.browse.req = Math.random().toString(36).slice(2);
+  S.browse.loading = true; S.browse.error = false; S.browse.loaded = true; S.browse.account = t.account || '';
+  send({ c: 'browse', p: t.id, id: top ? top.id : '', q: top && top.q ? top.q : '', req: S.browse.req });
+  render();
+}
+function browseReset() { S.browse.stack = []; S.browse.items = []; S.thumbs = {}; browseLoad(); }
+
+/* ------------------------------------------------------------------ Ereignisse */
+function optimisticToggle(id) {
+  var z = zoneOf(id); if (!z) return;
+  S.pending[z.id] = { mode: effMode(z) === 'play' ? 'pause' : 'play', until: Date.now() + 4000 };
+}
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-act]');
+  if (!el || el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'FORM') return;
+  var act = el.getAttribute('data-act'), p = el.getAttribute('data-p'), v = el.getAttribute('data-v');
+  switch (act) {
+    case 'tab': S.view = v; break;
+    case 'openZone': S.zoneSel = p; if (S.layout !== 'wide') S.view = 'zone'; break;
+    case 'toggle': optimisticToggle(p); send({ c: 'toggle', p: p }); break;
+    case 'next': case 'prev': send({ c: act, p: p }); break;
+    case 'shuffle': case 'repeat': send({ c: act, p: p, v: Number(v) }); break;
+    case 'power': (zoneOf(p) ? zoneOf(p).members : [p]).forEach(function (id) { send({ c: 'power', p: id, v: Number(v) === 1 }); }); break;
+    case 'mute': send({ c: 'mute', p: p, v: Number(v) === 1 }); var pl = player(p); if (pl) pl.muted = Number(v) === 1; break;
+    case 'pauseAll': send({ c: 'pauseAll' }); zones().forEach(function (z) { if (effMode(z) === 'play') S.pending[z.id] = { mode: 'pause', until: Date.now() + 4000 }; }); break;
+    case 'party':
+      var pz = primaryZone();
+      if (pz) send({ c: 'setZone', p: pz.id, v: [pz.id].concat(players().filter(function (x) { return x.connected && x.id !== pz.id; }).map(function (x) { return x.id; })) });
+      break;
+    case 'join':
+      var jz = zoneOf(p), add = zoneOf(v);
+      if (jz && add) send({ c: 'setZone', p: jz.id, v: jz.members.concat(add.members) });
+      break;
+    case 'editZone': var ez = zoneOf(p); S.sheet = { type: 'zone', zone: ez ? ez.id : p, sel: ez ? ez.members.slice() : [p] }; break;
+    case 'zonePreset':
+      if (S.sheet) S.sheet.sel = v === 'all' ? [S.sheet.zone].concat(players().map(function (x) { return x.id; }).filter(function (id) { return id !== S.sheet.zone; })) : [S.sheet.zone];
+      break;
+    case 'applyZone':
+      if (S.sheet) { send({ c: 'setZone', p: S.sheet.zone, v: S.sheet.sel.length ? S.sheet.sel : [] }); S.sheet = null; }
+      break;
+    case 'closeSheet': S.sheet = null; break;
+    case 'accountSheet': S.sheet = { type: 'account', zone: p }; break;
+    case 'account':
+      send({ c: 'account', p: p, v: v });
+      var az = zoneOf(p); if (az) { az.account = v; az.accountName = accName(v); }
+      if (el.getAttribute('data-close')) S.sheet = null;
+      setTimeout(browseReset, 450);
+      break;
+    case 'browseFor': S.target = p; if (S.layout !== 'wide') S.view = 'browse'; browseReset(); return;
+    case 'browseBack': S.browse.stack.pop(); browseLoad(); return;
+    case 'browseReload': browseLoad(); return;
+    case 'item':
+      var it = S.browse.items[Number(el.getAttribute('data-i'))]; if (!it) break;
+      if (it.items) { S.browse.stack.push({ id: it.id, name: it.name }); browseLoad(); return; }
+      if (it.audio) S.sheet = { type: 'item', item: it };
+      break;
+    case 'playItem':
+      var pi = S.browse.items[Number(el.getAttribute('data-i'))], ptz = targetZone();
+      if (pi && ptz) { send({ c: 'playItem', p: ptz.id, id: pi.id, v: 'play' }); S.pending[ptz.id] = { mode: 'play', until: Date.now() + 4000 }; }
+      break;
+    case 'itemMode':
+      var mz = targetZone();
+      if (S.sheet && S.sheet.item && mz) { send({ c: 'playItem', p: mz.id, id: S.sheet.item.id, v: v }); if (v === 'play') S.pending[mz.id] = { mode: 'play', until: Date.now() + 4000 }; }
+      S.sheet = null;
+      break;
+    default: return;
+  }
+  render();
+});
+$('#sheetWrap').addEventListener('click', function (e) { if (e.target === this) { S.sheet = null; render(); } });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.sheet) { S.sheet = null; render(); } });
+
+document.addEventListener('submit', function (e) {
+  var f = e.target.closest('[data-act=search]'); if (!f) return;
+  e.preventDefault();
+  var it = S.browse.items[Number(f.getAttribute('data-i'))], q = (f.q.value || '').trim();
+  if (!it || !q) return;
+  S.browse.stack.push({ id: it.id, name: '„' + q + '“', q: q });
+  browseLoad();
+});
+
+document.addEventListener('change', function (e) {
+  var el = e.target, act = el.getAttribute && el.getAttribute('data-act'), p = el.getAttribute && el.getAttribute('data-p');
+  if (act === 'zoneSel' && S.sheet) {
+    var sel = S.sheet.sel.filter(function (id) { return id !== p; });
+    if (el.checked) sel.push(p);
+    S.sheet.sel = sel; render(); return;
+  }
+  if (act === 'target') { S.target = el.value; browseReset(); return; }
+  if (act === 'vol' || act === 'zoneVol' || act === 'seek') { finishDrag(el); }
+});
+document.addEventListener('input', function (e) {
+  var el = e.target, act = el.getAttribute && el.getAttribute('data-act'), p = el.getAttribute('data-p');
+  if (act !== 'vol' && act !== 'zoneVol' && act !== 'seek') return;
+  S.drag = act + ':' + p;
+  var val = Number(el.value);
+  if (act === 'vol') {
+    var pl = player(p); if (pl) pl.volume = val;
+    var lab = document.querySelector('[data-vval="' + p + '"]'); if (lab) lab.textContent = val;
+    sendThrottled('vol:' + p, { c: 'vol', p: p, v: val }, 250);
+  } else if (act === 'zoneVol') {
+    var zl = document.querySelector('[data-vval="zone:' + p + '"]'); if (zl) zl.textContent = val;
+    sendThrottled('zv:' + p, { c: 'zoneVol', p: p, v: val }, 350);
+  } else {
+    var tl = document.querySelector('[data-time="' + p + '"]'); if (tl) tl.textContent = fmt(val);
+  }
+});
+function finishDrag(el) {
+  var act = el.getAttribute('data-act'), p = el.getAttribute('data-p'), val = Number(el.value);
+  if (act === 'seek') {
+    send({ c: 'seek', p: p, v: val });
+    var z = zoneOf(p); if (z) { z.time = val; S.recvAt = Date.now(); }
+  } else if (act === 'vol') {
+    send({ c: 'vol', p: p, v: val });
+  } else {
+    send({ c: 'zoneVol', p: p, v: val });
+  }
+  S.drag = null;
+  if (S.dirty) { S.dirty = false; render(); }
+}
+['pointerup', 'touchend', 'pointercancel'].forEach(function (ev) {
+  document.addEventListener(ev, function () { if (S.drag) setTimeout(function () { if (S.drag) { S.drag = null; if (S.dirty) { S.dirty = false; render(); } } }, 600); }, true);
+});
+
+/* ------------------------------------------------------------------ Fortschritt & Layout */
+setInterval(function () {
+  if (!S.st || S.drag) return;
+  zones().forEach(function (z) {
+    if (!z.duration || effMode(z) !== 'play') return;
+    var pos = position(z), pct = (100 * pos / z.duration).toFixed(1) + '%';
+    document.querySelectorAll('[data-prog="' + z.id + '"]').forEach(function (b) { b.style.width = pct; });
+    document.querySelectorAll('[data-time="' + z.id + '"]').forEach(function (t) { t.textContent = fmt(pos); });
+    document.querySelectorAll('[data-seek="' + z.id + '"]').forEach(function (r) { r.value = Math.floor(pos); });
+  });
+}, 1000);
+
+function computeLayout() {
+  var w = window.innerWidth, h = window.innerHeight;
+  if (w < 300 || h < 240) return 'mini';
+  return (w >= 900 && h >= 480) ? 'wide' : 'phone';
+}
+S.layout = computeLayout();
+window.addEventListener('resize', function () { var l = computeLayout(); if (l !== S.layout) { S.layout = l; render(); } });
+render();
+setTimeout(function () { send({ c: 'hello' }); }, 30);
+</script>

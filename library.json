@@ -1,0 +1,12 @@
+{
+    "id": "{8BDBDA09-5982-4915-9751-027C01551126}",
+    "author": "Dennis",
+    "name": "Lyrion Multiroom",
+    "url": "https://github.com/BlackOrca/IPS-LyrionMultiroom",
+    "compatibility": {
+        "version": "9.0"
+    },
+    "version": "0.1",
+    "build": 1,
+    "date": 1794153600
+}

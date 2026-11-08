@@ -1,0 +1,32 @@
+{
+    "translations": {
+        "de": {
+            "Lyrion Music Server": "Lyrion Music Server",
+            "Host (IP or name, without port)": "Host (IP oder Name, ohne Port)",
+            "Web port": "Web-Port",
+            "CLI port": "CLI-Port",
+            "Username (optional)": "Benutzername (optional)",
+            "Password": "Passwort",
+            "Rooms": "Räume",
+            "New players appear automatically (green). Area groups the rooms in the tile, e.g. by floor. Drag rows to set the order, untick to hide a player.": "Neue Player erscheinen automatisch (grün). Der Bereich gruppiert die Räume in der Kachel, z. B. nach Etage. Zeilen ziehen ändert die Reihenfolge, Haken entfernen blendet einen Player aus.",
+            "Players": "Player",
+            "Name": "Name",
+            "Player ID": "Player-ID",
+            "Area": "Bereich",
+            "Visible": "Sichtbar",
+            "Spotify and display": "Spotify und Darstellung",
+            "Spotify plugin (CLI command)": "Spotify-Plugin (CLI-Befehl)",
+            "Cover size": "Cover-Größe",
+            "Switch players on when they join a zone": "Player einschalten, wenn sie einer Zone beitreten",
+            "Fallback refresh (0 = off)": "Rückfall-Aktualisierung (0 = aus)",
+            "Test connection": "Verbindung testen",
+            "Please enter the host of the Lyrion Music Server.": "Bitte den Host des Lyrion Music Server eintragen.",
+            "Lyrion Music Server is not reachable.": "Lyrion Music Server ist nicht erreichbar.",
+            "Connected to Lyrion %s. Players: %d.": "Verbunden mit Lyrion %s. Player: %d.",
+            "Spotify plugin \"%s\" not found.": "Spotify-Plugin \"%s\" nicht gefunden.",
+            "Spotify accounts: %d.": "Spotify-Konten: %d.",
+            "Live events active.": "Live-Ereignisse aktiv.",
+            "Client Socket is not active, live events missing.": "Client Socket ist nicht aktiv, Live-Ereignisse fehlen."
+        }
+    }
+}

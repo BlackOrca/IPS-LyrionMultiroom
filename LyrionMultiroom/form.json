@@ -1,0 +1,150 @@
+{
+    "elements": [
+        {
+            "type": "ExpansionPanel",
+            "caption": "Lyrion Music Server",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "ValidationTextBox",
+                    "name": "Host",
+                    "caption": "Host (IP or name, without port)"
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "NumberSpinner",
+                            "name": "WebPort",
+                            "caption": "Web port",
+                            "minimum": 1,
+                            "maximum": 65535
+                        },
+                        {
+                            "type": "NumberSpinner",
+                            "name": "CliPort",
+                            "caption": "CLI port",
+                            "minimum": 1,
+                            "maximum": 65535
+                        }
+                    ]
+                },
+                {
+                    "type": "RowLayout",
+                    "items": [
+                        {
+                            "type": "ValidationTextBox",
+                            "name": "Username",
+                            "caption": "Username (optional)"
+                        },
+                        {
+                            "type": "PasswordTextBox",
+                            "name": "Password",
+                            "caption": "Password"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "ExpansionPanel",
+            "caption": "Rooms",
+            "expanded": true,
+            "items": [
+                {
+                    "type": "Label",
+                    "caption": "New players appear automatically (green). Area groups the rooms in the tile, e.g. by floor. Drag rows to set the order, untick to hide a player."
+                },
+                {
+                    "type": "List",
+                    "name": "Players",
+                    "caption": "Players",
+                    "rowCount": 8,
+                    "add": false,
+                    "delete": true,
+                    "changeOrder": true,
+                    "columns": [
+                        {
+                            "caption": "Name",
+                            "name": "name",
+                            "width": "auto"
+                        },
+                        {
+                            "caption": "Player ID",
+                            "name": "id",
+                            "width": "170px"
+                        },
+                        {
+                            "caption": "Area",
+                            "name": "area",
+                            "width": "180px",
+                            "edit": {
+                                "type": "ValidationTextBox"
+                            }
+                        },
+                        {
+                            "caption": "Visible",
+                            "name": "visible",
+                            "width": "90px",
+                            "edit": {
+                                "type": "CheckBox"
+                            }
+                        }
+                    ],
+                    "values": []
+                }
+            ]
+        },
+        {
+            "type": "ExpansionPanel",
+            "caption": "Spotify and display",
+            "items": [
+                {
+                    "type": "ValidationTextBox",
+                    "name": "SpotifyPlugin",
+                    "caption": "Spotify plugin (CLI command)"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "CoverSize",
+                    "caption": "Cover size",
+                    "suffix": "px",
+                    "minimum": 150,
+                    "maximum": 1000
+                },
+                {
+                    "type": "CheckBox",
+                    "name": "PowerOnJoin",
+                    "caption": "Switch players on when they join a zone"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "PollInterval",
+                    "caption": "Fallback refresh (0 = off)",
+                    "suffix": "s",
+                    "minimum": 0,
+                    "maximum": 3600
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "caption": "Test connection",
+            "onClick": "IPS_RequestAction($id, 'TestConnection', 0);"
+        }
+    ],
+    "status": [
+        {
+            "code": 104,
+            "icon": "inactive",
+            "caption": "Please enter the host of the Lyrion Music Server."
+        },
+        {
+            "code": 202,
+            "icon": "error",
+            "caption": "Lyrion Music Server is not reachable."
+        }
+    ]
+}

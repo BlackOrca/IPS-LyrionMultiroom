@@ -1,0 +1,20 @@
+{
+    "id": "{91D1C7C4-ADEB-4A3B-A4B4-F288AF7D5140}",
+    "name": "Lyrion Multiroom",
+    "type": 3,
+    "vendor": "Lyrion",
+    "aliases": [
+        "Lyrion Music Server Multiroom",
+        "LMS Multiroom",
+        "Squeezebox Multiroom"
+    ],
+    "parentRequirements": [
+        "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"
+    ],
+    "childRequirements": [],
+    "implemented": [
+        "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
+    ],
+    "prefix": "LMR",
+    "url": "https://github.com/BlackOrca/IPS-LyrionMultiroom/blob/main/LyrionMultiroom/README.md"
+}

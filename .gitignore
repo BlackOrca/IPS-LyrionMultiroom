@@ -1,0 +1,29 @@
+# Betriebssystem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editoren und IDEs
+.vscode/
+.idea/
+.vs/
+*.code-workspace
+*.swp
+*~
+
+# PHP-Werkzeuge
+/vendor/
+.php-cs-fixer.cache
+.php_cs.cache
+.phpunit.result.cache
+.phpunit.cache/
+
+# Tests: SymconStubs werden lokal nach tests/stubs geklont
+/tests/stubs
+/tests/output/
+__pycache__/
+*.pyc
+
+# Pakete und Protokolle
+*.zip
+*.log
