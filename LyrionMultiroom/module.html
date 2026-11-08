@@ -210,7 +210,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 <div class="app" id="app" data-layout="phone">
   <div class="banner" id="offline" hidden>Lyrion Music Server ist nicht erreichbar. Anzeige ist veraltet.</div>
   <div class="layout">
-    <section class="pane on" id="paneRooms" aria-label="Räume"></section>
+    <section class="pane on" id="paneRooms" aria-label="Bereiche"></section>
     <section class="pane" id="paneZone" aria-label="Wiedergabe"></section>
     <section class="pane" id="paneBrowse" aria-label="Spotify"></section>
   </div>
@@ -218,7 +218,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
   <nav class="tabbar" id="tabbar" aria-label="Navigation">
     <button class="tab" data-act="tab" data-v="rooms">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="2"></rect><circle cx="12" cy="14" r="3"></circle><circle cx="12" cy="7.5" r="1"></circle></svg>
-      Räume
+      Bereiche
     </button>
     <button class="tab" data-act="tab" data-v="browse">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18V6l10-2v12"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg>
@@ -294,7 +294,7 @@ function player(id) { return players().find(function (p) { return p.id === id; }
 function pname(id) { var p = player(id); return p ? p.name : id; }
 function zoneOf(id) { return zones().find(function (z) { return z.id === id || z.members.indexOf(id) >= 0; }) || null; }
 function zoneName(z) { var n = z.members.map(pname); return n.length > 1 ? n[0] + ' + ' + (n.length - 1) : n[0]; }
-function zoneLabel(z) { if (z.members.length > 1) return 'Zone · ' + z.members.length + ' Räume'; var p = player(z.id); return (p && p.area) ? p.area : 'Raum'; }
+function zoneLabel(z) { if (z.members.length > 1) return 'Zone · ' + z.members.length + ' Bereiche'; var p = player(z.id); return (p && p.area) ? p.area : 'Bereich'; }
 function effMode(z) { var p = S.pending[z.id]; if (p && p.until > Date.now()) return p.mode; return z.mode; }
 function isActive(z) { var m = effMode(z); return z.power && z.hasTrack && (m === 'play' || m === 'pause'); }
 function primaryZone() {
@@ -475,19 +475,19 @@ function muteButton(p) {
 function slider(act, id, value, label) {
   return '<input type="range" min="0" max="100" step="1" value="' + value + '" style="--p:' + value + '%" data-act="' + act + '" data-p="' + esc(id) + '" aria-label="' + esc(label) + '">';
 }
-/* Eine Reglerzeile mit Name (Lautstärke je Raum) */
+/* Eine Reglerzeile mit Name (Lautstärke je Bereich) */
 function volRow(id) {
   var p = player(id); if (!p) return '';
   return '<div class="vrow"><span class="vname ellipsis">' + esc(p.name) + '</span>' + muteButton(p) + slider('vol', id, p.volume, 'Lautstärke ' + p.name) +
     '<span class="vval" data-vval="' + esc(id) + '">' + p.volume + '</span></div>';
 }
-/* Kompakte Reglerzeile einer Zone: gemeinsam (mehrere Räume) oder der einzelne Raum */
+/* Kompakte Reglerzeile einer Zone: gemeinsam (mehrere Bereiche) oder der einzelne Bereich */
 function volumeLine(z) {
   if (z.members.length > 1) {
     var zv = zoneVolume(z);
     return '<div class="vrow"><span class="vicon">' + I.speaker() + '</span>' + slider('zoneVol', z.id, zv, 'Lautstärke der Zone ' + zoneName(z)) +
       '<span class="vval" data-vval="zone:' + esc(z.id) + '">' + zv + '</span>' +
-      '<button class="iconbtn ghost sm" data-act="volSheet" data-p="' + esc(z.id) + '" aria-label="Lautstärke je Raum">' + I.sliders() + '</button></div>';
+      '<button class="iconbtn ghost sm" data-act="volSheet" data-p="' + esc(z.id) + '" aria-label="Lautstärke je Bereich">' + I.sliders() + '</button></div>';
   }
   var p = player(z.id); if (!p) return '';
   return '<div class="vrow">' + muteButton(p) + slider('vol', p.id, p.volume, 'Lautstärke ' + p.name) +
@@ -524,10 +524,10 @@ function idleTile(z, joinTo) {
 
 function renderRooms() {
   var el = $('#paneRooms');
-  if (!S.st) { el.innerHTML = '<div class="view"><div class="h1">Räume</div><div class="skel"></div><div class="skel"></div></div>'; return; }
+  if (!S.st) { el.innerHTML = '<div class="view"><div class="h1">Bereiche</div><div class="skel"></div><div class="skel"></div></div>'; return; }
   var zs = zones(), multi = players().length > 1;
   var anyPlaying = zs.some(function (z) { return effMode(z) === 'play'; });
-  var h = '<div class="view"><div class="row vhead"><h1 class="h1 grow">Räume</h1>' +
+  var h = '<div class="view"><div class="row vhead"><h1 class="h1 grow">Bereiche</h1>' +
     (multi ? '<button class="chip hot" data-act="party">' + I.house() + 'Ganzes Haus</button>' : '') +
     (anyPlaying ? '<button class="iconbtn" data-act="pauseAll" aria-label="Alles pausieren">' + I.pause(18) + '</button>' : '') + '</div>';
   var entries = [];
@@ -535,7 +535,7 @@ function renderRooms() {
     entries.push({ h: 84, html: '<div class="hint h84">Keine Player sichtbar. Prüfe die Instanz-Konfiguration in Symcon.</div>' });
   } else if (zs.length === 1) {
     entries.push(zoneCardEntry(zs[0]));
-    if (!multi) entries.push({ h: 84, html: '<div class="hint h84">Weitere Player erscheinen automatisch. Dann lassen sich Räume zu Zonen verbinden.</div>' });
+    if (!multi) entries.push({ h: 84, html: '<div class="hint h84">Weitere Player erscheinen automatisch. Dann lassen sich Bereiche zu Zonen verbinden.</div>' });
   } else {
     var active = zs.filter(isActive), idle = zs.filter(function (z) { return !isActive(z); });
     var joinTo = active.length ? (active.find(function (z) { return effMode(z) === 'play'; }) || active[0]) : null;
@@ -544,7 +544,7 @@ function renderRooms() {
       active.forEach(function (z) { entries.push(zoneCardEntry(z)); });
     }
     if (idle.length) {
-      entries.push(head(active.length ? 'Bereit' : 'Räume'));
+      entries.push(head(active.length ? 'Bereit' : 'Alle Bereiche'));
       var c = cols('rooms', 150);
       var groups = hasAreas() ? byArea(idle, function (z) { var p = player(z.id); return p ? p.area : ''; }) : [{ area: '', items: idle }];
       groups.forEach(function (g) {
@@ -567,7 +567,7 @@ function renderZone() {
   var playing = effMode(z) === 'play';
   var multiMembers = z.members.length > 1;
   var accounts = S.st.accounts || [];
-  var h = '<div class="ztop"><button class="iconbtn ghost back" data-act="tab" data-v="rooms" aria-label="Zurück zu den Räumen">' + I.back() + '</button>' +
+  var h = '<div class="ztop"><button class="iconbtn ghost back" data-act="tab" data-v="rooms" aria-label="Zurück zu den Bereichen">' + I.back() + '</button>' +
     '<div class="center"><div class="small" style="color:var(--muted);text-transform:uppercase;letter-spacing:.06em">' + esc(multiMembers ? 'Zone' : zoneLabel(z)) + '</div><div class="ellipsis" style="font-weight:600">' + esc(multiMembers ? z.members.map(pname).join(', ') : zoneName(z)) + '</div></div>' +
     '<button class="iconbtn ghost" data-act="power" data-p="' + esc(z.id) + '" data-v="' + (z.power ? 0 : 1) + '" aria-label="' + (z.power ? 'Ausschalten' : 'Einschalten') + '" style="color:' + (z.power ? 'var(--accent)' : 'var(--dim)') + '">' + I.power() + '</button></div>';
   h += '<div class="np"><div class="covbox">' + coverHTML(z, 'bigcover') + '</div>';
@@ -685,15 +685,15 @@ function renderSheet() {
     });
     var stealing = sel.some(function (id) { var o = zoneOf(id); return o && z && o.id !== z.id && isActive(o); });
     h = '<div class="sheet tall" role="dialog" aria-modal="true" aria-label="Zone bearbeiten">' +
-      sheetHead('Welche Räume spielen mit?', 'Der erste Raum ist Master und bestimmt Quelle und Spotify-Konto.') +
-      '<div class="sbody"><div class="chips"><button class="chip" data-act="zonePreset" data-v="all">Alle Räume</button><button class="chip" data-act="zonePreset" data-v="none">Nur ' + esc(pname(sh.zone)) + '</button></div>' +
+      sheetHead('Welche Bereiche spielen mit?', 'Der erste Bereich ist Master und bestimmt Quelle und Spotify-Konto.') +
+      '<div class="sbody"><div class="chips"><button class="chip" data-act="zonePreset" data-v="all">Alle Bereiche</button><button class="chip" data-act="zonePreset" data-v="none">Nur ' + esc(pname(sh.zone)) + '</button></div>' +
       paged('zoneSheet', entries, 0, sh.opened) +
-      (stealing ? '<div class="warn">Ein gewählter Raum hat eine eigene Wiedergabe. Sie wird beendet, der Raum folgt dieser Zone.</div>' : '') +
-      '</div><div class="sfoot"><button class="btn primary block" data-act="applyZone">' + (sel.length <= 1 ? 'Zone auflösen' : 'Übernehmen · ' + sel.length + ' Räume') + '</button></div></div>';
+      (stealing ? '<div class="warn">Ein gewählter Bereich hat eine eigene Wiedergabe. Sie wird beendet, der Bereich folgt dieser Zone.</div>' : '') +
+      '</div><div class="sfoot"><button class="btn primary block" data-act="applyZone">' + (sel.length <= 1 ? 'Zone auflösen' : 'Übernehmen · ' + sel.length + ' Bereiche') + '</button></div></div>';
   } else if (sh.type === 'volumes') {
     var zv = zoneOf(sh.zone);
     if (!zv) { S.sheet = null; wrap.hidden = true; wrap.innerHTML = ''; return; }
-    h = '<div class="sheet tall" role="dialog" aria-modal="true" aria-label="Lautstärke je Raum">' + sheetHead('Lautstärke je Raum', zv.members.map(pname).join(', ')) +
+    h = '<div class="sheet tall" role="dialog" aria-modal="true" aria-label="Lautstärke je Bereich">' + sheetHead('Lautstärke je Bereich', zv.members.map(pname).join(', ')) +
       '<div class="sbody"><div class="panel">' + volumeLine(zv).replace(/<button class="iconbtn ghost sm" data-act="volSheet"[\s\S]*?<\/button>/, '') + '</div>' +
       paged('volSheet', zv.members.map(function (id) { return { h: 44, html: volRow(id) }; }), 0, sh.opened) + '</div></div>';
   } else if (sh.type === 'account') {

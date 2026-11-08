@@ -7,12 +7,9 @@
             "CLI port": "CLI-Port",
             "Username (optional)": "Benutzername (optional)",
             "Password": "Passwort",
-            "Rooms": "Räume",
-            "New players appear automatically (green). Area groups the rooms in the tile, e.g. by floor. Drag rows to set the order, untick to hide a player.": "Neue Player erscheinen automatisch (grün). Der Bereich gruppiert die Räume in der Kachel, z. B. nach Etage. Zeilen ziehen ändert die Reihenfolge, Haken entfernen blendet einen Player aus.",
             "Players": "Player",
             "Name": "Name",
             "Player ID": "Player-ID",
-            "Area": "Bereich",
             "Visible": "Sichtbar",
             "Spotify and display": "Spotify und Darstellung",
             "Spotify plugin (CLI command)": "Spotify-Plugin (CLI-Befehl)",
@@ -27,7 +24,10 @@
             "Spotify accounts: %d.": "Spotify-Konten: %d.",
             "Live events: no Client Socket connected.": "Live-Ereignisse: kein Client Socket verbunden.",
             "Live events: active via #%d.": "Live-Ereignisse: aktiv über #%d.",
-            "Live events: Client Socket #%d is not connected. Check host and CLI port (default 9090).": "Live-Ereignisse: Client Socket #%d ist nicht verbunden. Host und CLI-Port (Standard 9090) prüfen."
+            "Live events: Client Socket #%d is not connected. Check host and CLI port (default 9090).": "Live-Ereignisse: Client Socket #%d ist nicht verbunden. Host und CLI-Port (Standard 9090) prüfen.",
+            "Areas": "Bereiche",
+            "Group": "Gruppe",
+            "New players appear automatically (green). Group combines areas in the tile, e.g. by floor. Drag rows to set the order, untick to hide a player.": "Neue Player erscheinen automatisch (grün). Die Gruppe fasst Bereiche in der Kachel zusammen, z. B. nach Etage. Zeilen ziehen ändert die Reihenfolge, Haken entfernen blendet einen Player aus."
         }
     }
 }

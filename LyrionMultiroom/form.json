@@ -48,12 +48,12 @@
         },
         {
             "type": "ExpansionPanel",
-            "caption": "Rooms",
+            "caption": "Areas",
             "expanded": true,
             "items": [
                 {
                     "type": "Label",
-                    "caption": "New players appear automatically (green). Area groups the rooms in the tile, e.g. by floor. Drag rows to set the order, untick to hide a player."
+                    "caption": "New players appear automatically (green). Group combines areas in the tile, e.g. by floor. Drag rows to set the order, untick to hide a player."
                 },
                 {
                     "type": "List",
@@ -75,7 +75,7 @@
                             "width": "170px"
                         },
                         {
-                            "caption": "Area",
+                            "caption": "Group",
                             "name": "area",
                             "width": "180px",
                             "edit": {

@@ -14,12 +14,12 @@ Eigenständige Anbindung des Lyrion Music Server (LMS) an IP-Symcon mit eigener 
 ### 1. Funktionsumfang
 
 * Alle Player des LMS werden automatisch erkannt. Neue Player erscheinen ohne weitere Einrichtung in der Kachel.
-* Räume zu synchronen Zonen verbinden, Raum an eine laufende Zone anhängen, „Ganzes Haus“, Zone auflösen. Die Kachel warnt, wenn ein Raum dabei seine eigene Wiedergabe verliert.
-* Lautstärke pro Raum und für die ganze Zone. Die Zonen-Lautstärke verschiebt alle Räume gemeinsam, die Abstände bleiben erhalten.
+* Bereiche (Räume, Terrasse, Garten …) zu synchronen Zonen verbinden, einen Bereich an eine laufende Zone anhängen, „Ganzes Haus“, Zone auflösen. Die Kachel warnt, wenn ein Bereich dabei seine eigene Wiedergabe verliert.
+* Lautstärke pro Bereich und für die ganze Zone. Die Zonen-Lautstärke verschiebt alle Bereiche gemeinsam, die Abstände bleiben erhalten.
 * Spotify über SpotOn: Konto pro Zone wählen (in einer Zone zählt der Master), Home und Bibliothek durchblättern, suchen, abspielen, als Nächstes einreihen, anhängen.
 * Now Playing mit großem Cover, Hintergrund in der Farbe des Covers, Spulen, Zufall, Wiederholen, Ein/Aus.
 * Live-Aktualisierung über den CLI-Port: Änderungen aus anderen Apps (Material Skin, Spotify Connect, Tasten am Player) kommen sofort an.
-* Räume optional nach Bereichen (z. B. Etagen) gruppieren, sortieren und ausblenden.
+* Bereiche optional in Gruppen (z. B. Etagen) zusammenfassen, sortieren und ausblenden.
 * Skriptfunktionen `LMR_*`, Player per ID (MAC) oder per Name ansprechbar.
 
 ### 2. Voraussetzungen
@@ -49,7 +49,7 @@ Web-Port                  | Port der Weboberfläche bzw. von JSON-RPC (Standard 
 CLI-Port                  | Port der Kommandozeile für Live-Ereignisse (Standard 9090)
 Benutzername / Passwort   | Nur nötig, wenn am LMS ein Passwortschutz aktiv ist
 Player                    | Liste aller bekannten Player. Neu entdeckte sind grün markiert und werden mit „Übernehmen“ gespeichert. Grau markierte sind aktuell nicht im LMS bekannt.
-Player → Bereich          | Gruppiert die Räume in der Kachel, z. B. „Erdgeschoss“ oder „Obergeschoss“
+Player → Gruppe           | Fasst Bereiche in der Kachel zusammen, z. B. „Erdgeschoss“ oder „Außen“
 Player → Sichtbar         | Ausgeblendete Player erscheinen nicht in der Kachel
 Player → Reihenfolge      | Zeilen per Ziehen sortieren; neue Player werden alphabetisch angehängt
 Spotify-Plugin            | CLI-Befehl des Spotify-Plugins im LMS (Standard `spoton`)
@@ -69,15 +69,15 @@ Die Instanz bringt eine eigene Kachel für die Kachel-Visualisierung mit. Die Da
 Größe der Kachel                       | Darstellung
 -------------------------------------- | ------------------
 unter 300 px breit oder unter 240 px hoch | Mini-Player mit Cover, Titel und Play/Pause der laufenden Zone
-bis 900 px breit                       | Smartphone: Räume, Now Playing und Spotify mit Tab-Leiste
-ab 900 px breit                        | Tablet: drei Spalten mit Räumen, Wiedergabe und Spotify
+bis 900 px breit                       | Smartphone: Bereiche, Now Playing und Spotify mit Tab-Leiste
+ab 900 px breit                        | Tablet: drei Spalten mit Bereichen, Wiedergabe und Spotify
 
-* __Räume__: aktive Zonen mit Cover, Titel, Konto und Lautstärke (bei Zonen gemeinsam, über das Regler-Symbol je Raum); darunter die übrigen Räume, nach Bereichen gruppiert. Mit `+` wird ein Raum an die laufende Zone gehängt.
-* __Zone bearbeiten__: Räume per Häkchen auswählen; der zuerst gewählte Raum ist Master und bestimmt Quelle und Spotify-Konto.
+* __Bereiche__: aktive Zonen mit Cover, Titel, Konto und Lautstärke (bei Zonen gemeinsam, über das Regler-Symbol je Bereich); darunter die übrigen Bereiche, nach Gruppen sortiert. Mit `+` wird ein Bereich an die laufende Zone gehängt.
+* __Zone bearbeiten__: Bereiche per Häkchen auswählen; der zuerst gewählte Bereich ist Master und bestimmt Quelle und Spotify-Konto.
 * __Now Playing__: Cover in der verfügbaren Größe, Spulen, Zufall, Wiederholen, Lautstärke, Spotify-Konto, Zone und Spotify direkt erreichbar.
 * __Spotify__: Kontoumschalter, Auswahl der Zone („Abspielen in“), Suche, Listen mit Vorschaubildern; Titel und Playlists lassen sich sofort abspielen, als Nächstes einreihen oder anhängen.
 
-Die Kachel scrollt nicht. Symcon nutzt Wischgesten auf Kacheln selbst zum Scrollen der Seite, deshalb wäre Scrollen innerhalb der Kachel vor allem in der App unzuverlässig. Stattdessen passt sich der Inhalt der Höhe der Kachel an: Lange Listen (Räume, Spotify, Zone bearbeiten) werden mit ‹ › seitenweise geblättert, im Browser zusätzlich per Mausrad.
+Die Kachel scrollt nicht. Symcon nutzt Wischgesten auf Kacheln selbst zum Scrollen der Seite, deshalb wäre Scrollen innerhalb der Kachel vor allem in der App unzuverlässig. Stattdessen passt sich der Inhalt der Höhe der Kachel an: Lange Listen (Bereiche, Spotify, Zone bearbeiten) werden mit ‹ › seitenweise geblättert, im Browser zusätzlich per Mausrad.
 
 Farben und Schrift übernimmt die Kachel aus dem gewählten Design der Visualisierung (hell oder dunkel, Akzentfarbe, Kachelfarbe). Alle Flächen und Linien werden aus diesen Farben abgeleitet; der Kacheltitel von Symcon bleibt frei.
 
@@ -102,7 +102,7 @@ Beispiel:
 `$state = json_decode(LMR_GetState(12345), true);`
 
 `string LMR_GetPlayers(integer $InstanzID);`
-Liefert alle sichtbaren Player als JSON (ID, Name, Bereich, verbunden, eingeschaltet, Modus, Lautstärke).
+Liefert alle sichtbaren Player als JSON (ID, Name, Gruppe, verbunden, eingeschaltet, Modus, Lautstärke).
 
 Beispiel:
 `$players = json_decode(LMR_GetPlayers(12345), true);`

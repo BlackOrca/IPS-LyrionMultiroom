@@ -3,7 +3,7 @@
 Folgende Module beinhaltet das Lyrion Multiroom Repository:
 
 - __Lyrion Multiroom__ ([Dokumentation](LyrionMultiroom))  
-	Bedienung des Lyrion Music Server (LMS) über eine eigene Kachel in der Kachel-Visualisierung: Räume werden automatisch erkannt, lassen sich zu synchronen Zonen verbinden, und Spotify (Plugin SpotOn) kann mit mehreren Konten pro Zone genutzt werden. Optimiert für Smartphone, mit Tablet-Layout und Mini-Player.
+	Bedienung des Lyrion Music Server (LMS) über eine eigene Kachel in der Kachel-Visualisierung: Bereiche (Räume, Terrasse, Garten …) werden automatisch erkannt, lassen sich zu synchronen Zonen verbinden, und Spotify (Plugin SpotOn) kann mit mehreren Konten pro Zone genutzt werden. Optimiert für Smartphone, mit Tablet-Layout und Mini-Player.
 
 ## Tests
 

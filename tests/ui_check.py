@@ -205,7 +205,7 @@ with sync_playwright() as p:
     page, errors = page_for(browser, SINGLE, 390, 844, "phone_single")
     page.screenshot(path=str(OUT / "09_phone_single.png"))
     check("Ein Player: keine Zonen-Funktionen", page.locator("[data-act=editZone], [data-act=party]").count() == 0)
-    check("Ein Player: Hinweis auf weitere Räume", page.get_by_text("Weitere Player erscheinen").count() == 1)
+    check("Ein Player: Hinweis auf weitere Bereiche", page.get_by_text("Weitere Player erscheinen").count() == 1)
     page.locator("button.zhead").click()
     page.wait_for_timeout(300)
     page.screenshot(path=str(OUT / "10_phone_single_np.png"))
