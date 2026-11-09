@@ -9,6 +9,7 @@ import sys
 from playwright.sync_api import sync_playwright
 
 MULTI, SINGLE, OUT = (pathlib.Path(p).resolve() for p in sys.argv[1:4])
+NOSPOTIFY = pathlib.Path(sys.argv[4]).resolve() if len(sys.argv) > 4 else None
 OUT.mkdir(parents=True, exist_ok=True)
 
 # Nachbildung der Symcon-Kachelumgebung: Designvariablen, body-Ränder aus den Query-Parametern
@@ -32,7 +33,8 @@ function requestAction(ident, value) {
   window.__sent.push(JSON.parse(value));
   var m = JSON.parse(value);
   if (m.c === 'browse') {
-    var key = m.id ? (m.q ? 'search' : (m.id === 'ab12.3' ? 'long' : 'list')) : 'root';
+    var kind = m.q ? 'search' : (m.id === 'ab12.3' ? 'long' : (m.id ? 'item' : 'root'));
+    var key = (m.src || '') + ':' + (m.root || '') + ':' + kind;
     setTimeout(function () {
       (window.__responses[key] || []).forEach(function (x) { x = JSON.parse(JSON.stringify(x)); x.req = m.req; handleMessage(JSON.stringify(x)); });
     }, 60);
@@ -126,10 +128,12 @@ with sync_playwright() as p:
 
     page.locator("button.tab[data-v=browse]").click()
     page.wait_for_timeout(500)
+    check("Tab heißt Musik", page.locator("button.tab[data-v=browse]").inner_text().strip() == "Musik")
+    check("Quellenwahl: Spotify, Bibliothek, Favoriten", page.locator(".seg[aria-label=Musikquelle] button").all_inner_texts() == ["Spotify", "Bibliothek", "Favoriten"], str(page.locator(".seg[aria-label=Musikquelle] button").all_inner_texts()))
     page.screenshot(path=str(OUT / "05_phone_spotify.png"))
     check("Spotify-Root geladen (Suche als Feld)", page.locator("form.search input").count() == 1)
-    check("Kontoumschalter mit 2 Konten", page.locator(".seg button").count() == 2)
-    page.locator(".seg button", has_text="Familie").click()
+    check("Kontoumschalter mit 2 Konten", page.locator(".seg[aria-label=Spotify-Konto] button").count() == 2)
+    page.locator(".seg[aria-label=Spotify-Konto] button", has_text="Familie").click()
     s = [m for m in sent(page) if m["c"] == "account"][-1]
     check("Kontowechsel für Ziel-Zone", s["v"] == "acc_family", json.dumps(s))
     page.wait_for_timeout(700)
@@ -168,6 +172,31 @@ with sync_playwright() as p:
     check("Mausrad blättert weiter", page.locator("#paneBrowse .pager span").inner_text().startswith("Seite 3"), page.locator("#paneBrowse .pager span").inner_text())
     page.locator("button[data-act=browseBack]").click()
     page.wait_for_timeout(400)
+    # Lokale Bibliothek
+    page.locator(".seg[aria-label=Musikquelle] button", has_text="Bibliothek").click()
+    page.wait_for_timeout(300)
+    page.screenshot(path=str(OUT / "07c_phone_library.png"))
+    check("Bibliothek zeigt Einstiege", page.locator("#paneBrowse button.open").all_inner_texts()[:3] == ["Suche", "Interpreten", "Alben"], str(page.locator("#paneBrowse button.open").all_inner_texts()))
+    check("Bibliothek: keine Konto-Auswahl", page.locator(".seg[aria-label=Spotify-Konto]").count() == 0)
+    page.locator("button.open", has_text="Interpreten").click()
+    page.wait_for_timeout(400)
+    check("Interpreten geladen", page.locator("button.open", has_text="Hans Zimmer").count() == 1)
+    req = [m for m in sent(page) if m["c"] == "browse"][-1]
+    check("Browse-Anfrage mit Quelle und Einstieg", req.get("src") == "library" and req.get("root") == "artists", json.dumps(req))
+    page.locator("button.open", has_text="Hans Zimmer").click()
+    page.wait_for_timeout(400)
+    page.screenshot(path=str(OUT / "07d_phone_library_artist.png"))
+    page.locator("button[data-act=playItem]").first.click()
+    s = sent(page)[-1]
+    check("Titel aus Bibliothek abspielen", s["c"] == "playItem" and s["src"] == "library" and s["root"] == "artists", json.dumps(s))
+    page.locator("button[data-act=browseBack]").click()
+    page.locator("button[data-act=browseBack]").click()
+    page.wait_for_timeout(300)
+    page.locator(".seg[aria-label=Musikquelle] button", has_text="Favoriten").click()
+    page.wait_for_timeout(400)
+    check("Favoriten geladen", page.locator("button.open", has_text="Deutschlandfunk").count() == 1)
+    page.locator(".seg[aria-label=Musikquelle] button", has_text="Spotify").click()
+    page.wait_for_timeout(400)
     page.locator("form.search input").fill("nordlicht")
     page.locator("form.search input").press("Enter")
     page.wait_for_timeout(500)
@@ -190,6 +219,20 @@ with sync_playwright() as p:
     page.screenshot(path=str(OUT / "02d_phone_small_np.png"))
     check("Now Playing passt auch klein", page.evaluate("(e => e.scrollHeight <= e.clientHeight + 1)(document.querySelector('#paneZone .np'))"))
     check("Keine JS-Fehler (klein)", not errors, "; ".join(errors))
+
+    # ---------------------------------------------------------------- Ohne SpotOn
+    if NOSPOTIFY:
+        print("== Ohne Spotify (SpotOn abgeschaltet)")
+        page, errors = page_for(browser, NOSPOTIFY, 390, 844, "phone_nospotify")
+        check("Ohne Spotify: kein Konto-Symbol in den Karten", page.locator("#paneRooms .zsub .avatar").count() == 0)
+        page.locator("button.zhead").first.click()
+        page.wait_for_timeout(300)
+        check("Ohne Spotify: kein Konto-Knopf, aber Musik-Knopf", page.locator("#paneZone [data-act=accountSheet]").count() == 0 and page.locator("#paneZone .actions", has_text="Musik").count() == 1)
+        page.locator("button.tab[data-v=browse]").click()
+        page.wait_for_timeout(400)
+        page.screenshot(path=str(OUT / "14_phone_nospotify_music.png"))
+        check("Ohne Spotify: Quellen Bibliothek und Favoriten", page.locator(".seg[aria-label=Musikquelle] button").all_inner_texts() == ["Bibliothek", "Favoriten"], str(page.locator(".seg[aria-label=Musikquelle] button").all_inner_texts()))
+        check("Keine JS-Fehler (ohne Spotify)", not errors, "; ".join(errors))
 
     # ---------------------------------------------------------------- Dunkles Design
     print("== Smartphone, dunkles Design")

@@ -212,7 +212,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
   <div class="layout">
     <section class="pane on" id="paneRooms" aria-label="Bereiche"></section>
     <section class="pane" id="paneZone" aria-label="Wiedergabe"></section>
-    <section class="pane" id="paneBrowse" aria-label="Spotify"></section>
+    <section class="pane" id="paneBrowse" aria-label="Musik"></section>
   </div>
   <div class="mini" id="mini"></div>
   <nav class="tabbar" id="tabbar" aria-label="Navigation">
@@ -222,7 +222,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
     </button>
     <button class="tab" data-act="tab" data-v="browse">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18V6l10-2v12"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle></svg>
-      Spotify
+      Musik
     </button>
   </nav>
   <div class="sheet-wrap" id="sheetWrap" hidden></div>
@@ -234,7 +234,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 var S = {
   st: null, covers: {}, thumbs: {}, recvAt: 0,
   layout: 'phone', view: 'rooms', zoneSel: null, target: null,
-  browse: { stack: [], items: [], req: null, loading: false, error: false, loaded: false, account: null },
+  browse: { src: null, stack: [], items: [], req: null, loading: false, error: false, loaded: false, account: null },
   sheet: null, pending: {}, drag: null, dirty: false, raf: 0, sendTimers: {}
 };
 
@@ -359,7 +359,9 @@ function handleMessage(data) {
       if (!z || z.mode === S.pending[id].mode || S.pending[id].until < Date.now()) delete S.pending[id];
     });
     var t = targetZone();
-    if (t && S.browse.loaded && S.browse.account !== null && t.account !== S.browse.account && !S.browse.loading) {
+    if (S.browse.loaded && S.browse.src && sources().indexOf(S.browse.src) < 0) {
+      S.browse.src = null; browseReset();
+    } else if (t && S.browse.loaded && S.browse.src === 'spotify' && S.browse.account !== null && t.account !== S.browse.account && !S.browse.loading) {
       browseReset();
     }
   } else if (m.t === 'covers') {
@@ -448,7 +450,7 @@ function renderNow() {
     if (!measure()) break;
   }
   fitCovers();
-  if ((S.layout === 'wide' || S.view === 'browse') && S.st && S.st.spotify && !S.browse.loaded && !S.browse.loading) browseLoad();
+  if ((S.layout === 'wide' || S.view === 'browse') && S.st && sources().length && !S.browse.loaded && !S.browse.loading) browseLoad();
 }
 function renderAll() {
   if (S.layout === 'mini') { renderMini(); return; }
@@ -587,7 +589,7 @@ function renderZone() {
       '<button class="ctl" data-act="next" data-p="' + esc(z.id) + '" aria-label="Nächster Titel">' + I.next() + '</button>' +
       '<button class="ctl small ' + (z.repeat ? 'on' : '') + '" data-act="repeat" data-p="' + esc(z.id) + '" data-v="' + ({ 0: 2, 2: 1, 1: 0 })[z.repeat] + '" aria-label="Wiederholen: ' + ['aus', 'Titel', 'Liste'][z.repeat] + '">' + I.repeat(22, z.repeat === 1) + '</button></div>';
   } else {
-    h += '<div class="empty">Hier läuft gerade nichts.' + (S.st.spotify ? ' Starte etwas aus Spotify.' : '') + '</div>';
+    h += '<div class="empty">Hier läuft gerade nichts.' + (sources().length ? ' Wähle unter „Musik“ etwas aus.' : '') + '</div>';
   }
   h += '<div class="npvol">' + volumeLine(z) + '</div>';
   var acts = [];
@@ -595,7 +597,7 @@ function renderZone() {
     acts.push('<button class="btn" data-act="' + (accounts.length > 1 ? 'accountSheet' : 'browseFor') + '" data-p="' + esc(z.id) + '" aria-label="Spotify-Konto: ' + esc(z.accountName || accName(z.account)) + '">' + avatar(z.account) + '<span class="ellipsis">' + esc(z.accountName || accName(z.account)) + '</span></button>');
   }
   if (players().length > 1) acts.push('<button class="btn" data-act="editZone" data-p="' + esc(z.id) + '">' + I.zone() + '<span class="ellipsis">' + (multiMembers ? 'Zone' : 'Verbinden') + '</span></button>');
-  if (S.st.spotify) acts.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + '<span class="ellipsis">Spotify</span></button>');
+  if (sources().length) acts.push('<button class="btn" data-act="browseFor" data-p="' + esc(z.id) + '">' + I.note(16) + '<span class="ellipsis">Musik</span></button>');
   if (acts.length) h += '<div class="actions">' + acts.join('') + '</div>';
   el.innerHTML = h + '</div>';
 }
@@ -604,18 +606,24 @@ function renderBrowse() {
   var el = $('#paneBrowse');
   var b = S.browse, top = b.stack[b.stack.length - 1];
   var h = '<div class="btop">' + (b.stack.length ? '<button class="iconbtn ghost" data-act="browseBack" aria-label="Zurück">' + I.back() + '</button>' : '<span style="width:4px"></span>') +
-    '<div class="h grow ellipsis">' + esc(top ? top.name : 'Spotify') + '</div>' +
-    (S.st && S.st.spotify ? '<button class="iconbtn ghost" data-act="browseReload" aria-label="Neu laden">' + I.refresh() + '</button>' : '') + '</div>';
+    '<div class="h grow ellipsis">' + esc(top ? top.name : 'Musik') + '</div>' +
+    (S.st && sources().length ? '<button class="iconbtn ghost" data-act="browseReload" aria-label="Neu laden">' + I.refresh() + '</button>' : '') + '</div>';
   h += '<div class="view">';
   if (!S.st) { el.innerHTML = h + '<div class="skel"></div><div class="skel"></div></div>'; return; }
-  if (!S.st.spotify) {
-    el.innerHTML = h + '<div class="hint">Das Spotify-Plugin wurde im Lyrion nicht gefunden. Prüfe, ob SpotOn installiert ist und ob in der Instanz der richtige Plugin-Befehl eingetragen ist.</div></div>';
+  if (!sources().length) {
+    el.innerHTML = h + '<div class="hint">Im Lyrion wurde keine Musikquelle gefunden.</div></div>';
     return;
   }
   var t = targetZone();
   var accounts = S.st.accounts || [];
+  var src = currentSource();
   if (!b.stack.length) {
-    if (accounts.length > 1 && t) {
+    if (sources().length > 1) {
+      h += '<div class="seg" role="group" aria-label="Musikquelle">' + sources().map(function (k) {
+        return '<button data-act="source" data-v="' + k + '" aria-pressed="' + (src === k ? 'true' : 'false') + '"><span class="ellipsis">' + SOURCE_NAMES[k] + '</span></button>';
+      }).join('') + '</div>';
+    }
+    if (src === 'spotify' && accounts.length > 1 && t) {
       h += '<div class="seg" role="group" aria-label="Spotify-Konto">' + accounts.map(function (a) {
         return '<button data-act="account" data-p="' + esc(t.id) + '" data-v="' + esc(a.id) + '" aria-pressed="' + (t.account === a.id ? 'true' : 'false') + '">' +
           '<span class="avatar" style="width:24px;height:24px;border-radius:12px;font-size:11px;background:' + accColor(a.id) + '">' + initial(a.name) + '</span><span class="ellipsis">' + esc(a.name) + '</span></button>';
@@ -643,7 +651,7 @@ function renderBrowse() {
         entries.push({ h: 58, html: '<div class="searchrow"><form class="search" data-act="search" data-i="' + i + '">' + I.search() + '<input type="search" name="q" placeholder="' + esc(it.name || 'Suchen') + '" aria-label="' + esc(it.name || 'Suchen') + '" enterkeyhint="search"></form></div>' });
         return;
       }
-      var thumb = S.thumbs[it.id] ? '<img src="' + S.thumbs[it.id] + '" alt="">' : (it.items && !it.audio ? I.folder() : I.note());
+      var thumb = S.thumbs[it.id] ? '<img src="' + S.thumbs[it.id] + '" alt="">' : (it.type === 'libroot' ? (it.root === 'search' ? I.search() : I.folder()) : (it.items && !it.audio ? I.folder() : I.note()));
       var clickable = it.items || it.audio;
       entries.push({ h: 58, html: '<div class="item"><button class="open" data-act="item" data-i="' + i + '"' + (clickable ? '' : ' disabled') + '>' +
         '<span class="thumb">' + thumb + '</span><span class="grow ellipsis" style="font-size:15px">' + esc(it.name) + '</span>' + (it.items ? '<span class="dim">' + I.chev() + '</span>' : '') + '</button>' +
@@ -685,7 +693,7 @@ function renderSheet() {
     });
     var stealing = sel.some(function (id) { var o = zoneOf(id); return o && z && o.id !== z.id && isActive(o); });
     h = '<div class="sheet tall" role="dialog" aria-modal="true" aria-label="Zone bearbeiten">' +
-      sheetHead('Welche Bereiche spielen mit?', 'Der erste Bereich ist Master und bestimmt Quelle und Spotify-Konto.') +
+      sheetHead('Welche Bereiche spielen mit?', 'Der erste Bereich ist Master und bestimmt ' + (S.st.spotify ? 'Quelle und Spotify-Konto.' : 'die Quelle.')) +
       '<div class="sbody"><div class="chips"><button class="chip" data-act="zonePreset" data-v="all">Alle Bereiche</button><button class="chip" data-act="zonePreset" data-v="none">Nur ' + esc(pname(sh.zone)) + '</button></div>' +
       paged('zoneSheet', entries, 0, sh.opened) +
       (stealing ? '<div class="warn">Ein gewählter Bereich hat eine eigene Wiedergabe. Sie wird beendet, der Bereich folgt dieser Zone.</div>' : '') +
@@ -713,13 +721,38 @@ function renderSheet() {
 }
 
 /* ------------------------------------------------------------------ Browse */
+var SOURCE_NAMES = { spotify: 'Spotify', library: 'Bibliothek', favorites: 'Favoriten' };
+var LIBRARY_ROOTS = [['search', 'Suche'], ['artists', 'Interpreten'], ['albums', 'Alben'], ['new', 'Neue Musik'], ['genres', 'Genres'], ['years', 'Jahre'], ['folder', 'Musikordner'], ['playlists', 'Wiedergabelisten']];
+function sources() {
+  var available = (S.st && S.st.sources) || [];
+  return ['spotify', 'library', 'favorites'].filter(function (k) { return available.indexOf(k) >= 0; });
+}
+function currentSource() {
+  var list = sources();
+  if (S.browse.src && list.indexOf(S.browse.src) >= 0) return S.browse.src;
+  var saved = null;
+  try { saved = localStorage.getItem('lmr-source'); } catch (e) { /* kein Speicher verfügbar */ }
+  return saved && list.indexOf(saved) >= 0 ? saved : (list[0] || null);
+}
+function rootKey() { var first = S.browse.stack[0]; return first && first.root ? first.root : ''; }
 function browseLoad() {
-  var t = targetZone();
-  if (!t) return;
+  var t = targetZone(), src = currentSource();
+  S.browse.src = src;
+  S.browse.loaded = true;
+  if (!t || !src) { render(); return; }
   var top = S.browse.stack[S.browse.stack.length - 1];
+  S.browse.account = src === 'spotify' ? (t.account || '') : null;
+  S.browse.error = false;
+  if (src === 'library' && !top) {
+    // Die Einstiege der Bibliothek kennt die Kachel selbst
+    S.browse.req = 'library-root'; S.browse.loading = false; S.thumbs = {};
+    S.browse.items = LIBRARY_ROOTS.map(function (r) { return { id: 'root:' + r[0], root: r[0], name: r[1], type: 'libroot', audio: false, items: true }; });
+    render();
+    return;
+  }
   S.browse.req = Math.random().toString(36).slice(2);
-  S.browse.loading = true; S.browse.error = false; S.browse.loaded = true; S.browse.account = t.account || '';
-  send({ c: 'browse', p: t.id, id: top ? top.id : '', q: top && top.q ? top.q : '', req: S.browse.req });
+  S.browse.loading = true;
+  send({ c: 'browse', p: t.id, src: src, root: rootKey(), id: top ? top.id : '', q: top && top.q ? top.q : '', req: S.browse.req });
   render();
 }
 function browseReset() { S.browse.stack = []; S.browse.items = []; S.thumbs = {}; browseLoad(); }
@@ -765,23 +798,29 @@ document.addEventListener('click', function (e) {
       send({ c: 'account', p: p, v: v });
       var az = zoneOf(p); if (az) { az.account = v; az.accountName = accName(v); }
       if (el.getAttribute('data-close')) S.sheet = null;
-      setTimeout(browseReset, 450);
+      if (S.browse.src === 'spotify') setTimeout(browseReset, 450);
       break;
+    case 'source':
+      S.browse.src = v;
+      try { localStorage.setItem('lmr-source', v); } catch (e) { /* kein Speicher verfügbar */ }
+      browseReset();
+      return;
     case 'browseFor': S.target = p; if (S.layout !== 'wide') S.view = 'browse'; browseReset(); return;
     case 'browseBack': S.browse.stack.pop(); browseLoad(); return;
     case 'browseReload': browseLoad(); return;
     case 'item':
       var it = S.browse.items[Number(el.getAttribute('data-i'))]; if (!it) break;
+      if (it.type === 'libroot') { S.browse.stack.push({ id: '', root: it.root, name: it.name }); browseLoad(); return; }
       if (it.items) { S.browse.stack.push({ id: it.id, name: it.name }); browseLoad(); return; }
       if (it.audio) S.sheet = { type: 'item', item: it };
       break;
     case 'playItem':
       var pi = S.browse.items[Number(el.getAttribute('data-i'))], ptz = targetZone();
-      if (pi && ptz) { send({ c: 'playItem', p: ptz.id, id: pi.id, v: 'play' }); S.pending[ptz.id] = { mode: 'play', until: Date.now() + 4000 }; }
+      if (pi && ptz) { send({ c: 'playItem', p: ptz.id, src: S.browse.src, root: rootKey(), id: pi.id, v: 'play' }); S.pending[ptz.id] = { mode: 'play', until: Date.now() + 4000 }; }
       break;
     case 'itemMode':
       var mz = targetZone();
-      if (S.sheet && S.sheet.item && mz) { send({ c: 'playItem', p: mz.id, id: S.sheet.item.id, v: v }); if (v === 'play') S.pending[mz.id] = { mode: 'play', until: Date.now() + 4000 }; }
+      if (S.sheet && S.sheet.item && mz) { send({ c: 'playItem', p: mz.id, src: S.browse.src, root: rootKey(), id: S.sheet.item.id, v: v }); if (v === 'play') S.pending[mz.id] = { mode: 'play', until: Date.now() + 4000 }; }
       S.sheet = null;
       break;
     default: return;

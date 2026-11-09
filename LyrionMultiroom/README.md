@@ -1,5 +1,5 @@
 # Lyrion Multiroom
-Eigenständige Anbindung des Lyrion Music Server (LMS) an IP-Symcon mit eigener Kachel für die Kachel-Visualisierung. Schwerpunkt sind Multiroom-Zonen und mehrere Spotify-Konten (LMS-Plugin SpotOn) in einem Haushalt. Die Kachel ist für das Smartphone optimiert und wechselt auf breiten Kacheln in ein Tablet-Layout.
+Eigenständige Anbindung des Lyrion Music Server (LMS) an IP-Symcon mit eigener Kachel für die Kachel-Visualisierung. Schwerpunkt sind Multiroom-Zonen, die eigene Musiksammlung des LMS und – optional – mehrere Spotify-Konten (LMS-Plugin SpotOn) in einem Haushalt. Die Kachel ist für das Smartphone optimiert und wechselt auf breiten Kacheln in ein Tablet-Layout.
 
 ### Inhaltsverzeichnis
 
@@ -16,7 +16,9 @@ Eigenständige Anbindung des Lyrion Music Server (LMS) an IP-Symcon mit eigener 
 * Alle Player des LMS werden automatisch erkannt. Neue Player erscheinen ohne weitere Einrichtung in der Kachel.
 * Bereiche (Räume, Terrasse, Garten …) zu synchronen Zonen verbinden, einen Bereich an eine laufende Zone anhängen, „Ganzes Haus“, Zone auflösen. Die Kachel warnt, wenn ein Bereich dabei seine eigene Wiedergabe verliert.
 * Lautstärke pro Bereich und für die ganze Zone. Die Zonen-Lautstärke verschiebt alle Bereiche gemeinsam, die Abstände bleiben erhalten.
-* Spotify über SpotOn: Konto pro Zone wählen (in einer Zone zählt der Master), Home und Bibliothek durchblättern, suchen, abspielen, als Nächstes einreihen, anhängen.
+* Eigene Musik aus der LMS-Bibliothek: Suche, Interpreten, Alben, Neue Musik, Genres, Jahre, Musikordner und Wiedergabelisten durchblättern, abspielen, als Nächstes einreihen, anhängen.
+* LMS-Favoriten (z. B. Radiosender) direkt starten.
+* Optional Spotify über SpotOn: Konto pro Zone wählen (in einer Zone zählt der Master), Home und Bibliothek durchblättern, suchen, abspielen. Ohne SpotOn bleibt die Kachel frei von Spotify-Elementen.
 * Now Playing mit großem Cover, Hintergrund in der Farbe des Covers, Spulen, Zufall, Wiederholen, Ein/Aus.
 * Live-Aktualisierung über den CLI-Port: Änderungen aus anderen Apps (Material Skin, Spotify Connect, Tasten am Player) kommen sofort an.
 * Bereiche optional in Gruppen (z. B. Etagen) zusammenfassen, sortieren und ausblenden.
@@ -26,6 +28,7 @@ Eigenständige Anbindung des Lyrion Music Server (LMS) an IP-Symcon mit eigener 
 
 - IP-Symcon ab Version 9.0
 - Lyrion Music Server ab Version 8, Web-Port (Standard 9000) und CLI-Port (Standard 9090) aus Symcon erreichbar
+- Musikbibliothek im LMS eingerichtet (Musikordner unter Einstellungen → Basiseinstellungen), sonst bleiben nur Favoriten und Spotify
 - Optional für Spotify: LMS-Plugin [SpotOn](https://github.com/stiefenm/spoton) mit mindestens einem gekoppelten Konto
 
 ### 3. Software-Installation
@@ -52,11 +55,12 @@ Player                    | Liste aller bekannten Player. Neu entdeckte sind gr�
 Player → Gruppe           | Fasst Bereiche in der Kachel zusammen, z. B. „Erdgeschoss“ oder „Außen“
 Player → Sichtbar         | Ausgeblendete Player erscheinen nicht in der Kachel
 Player → Reihenfolge      | Zeilen per Ziehen sortieren; neue Player werden alphabetisch angehängt
+Spotify über SpotOn      | Schaltet die Spotify-Integration ein oder aus. Aus: keine Konten, kein Spotify in der Musikauswahl, auch wenn SpotOn installiert ist
 Spotify-Plugin            | CLI-Befehl des Spotify-Plugins im LMS (Standard `spoton`)
 Cover-Größe               | Kantenlänge der Cover in Pixel, die vom LMS geladen werden
 Player einschalten        | Schaltet Player ein, wenn sie einer Zone beitreten
 Rückfall-Aktualisierung   | Intervall in Sekunden, in dem zusätzlich alles neu gelesen wird (0 = aus)
-Verbindung testen         | Zeigt LMS-Version, Anzahl der Player, gefundene Spotify-Konten und ob Live-Ereignisse aktiv sind
+Verbindung testen         | Zeigt LMS-Version, Anzahl der Player, gefundene Spotify-Konten (falls aktiv) und ob Live-Ereignisse aktiv sind
 
 ### 5. Statusvariablen und Profile
 
@@ -69,15 +73,16 @@ Die Instanz bringt eine eigene Kachel für die Kachel-Visualisierung mit. Die Da
 Größe der Kachel                       | Darstellung
 -------------------------------------- | ------------------
 unter 300 px breit oder unter 240 px hoch | Mini-Player mit Cover, Titel und Play/Pause der laufenden Zone
-bis 900 px breit                       | Smartphone: Bereiche, Now Playing und Spotify mit Tab-Leiste
-ab 900 px breit                        | Tablet: drei Spalten mit Bereichen, Wiedergabe und Spotify
+bis 900 px breit                       | Smartphone: Bereiche, Now Playing und Musik mit Tab-Leiste
+ab 900 px breit                        | Tablet: drei Spalten mit Bereichen, Wiedergabe und Musik
 
 * __Bereiche__: aktive Zonen mit Cover, Titel, Konto und Lautstärke (bei Zonen gemeinsam, über das Regler-Symbol je Bereich); darunter die übrigen Bereiche, nach Gruppen sortiert. Mit `+` wird ein Bereich an die laufende Zone gehängt.
-* __Zone bearbeiten__: Bereiche per Häkchen auswählen; der zuerst gewählte Bereich ist Master und bestimmt Quelle und Spotify-Konto.
-* __Now Playing__: Cover in der verfügbaren Größe, Spulen, Zufall, Wiederholen, Lautstärke, Spotify-Konto, Zone und Spotify direkt erreichbar.
-* __Spotify__: Kontoumschalter, Auswahl der Zone („Abspielen in“), Suche, Listen mit Vorschaubildern; Titel und Playlists lassen sich sofort abspielen, als Nächstes einreihen oder anhängen.
+* __Zone bearbeiten__: Bereiche per Häkchen auswählen; der zuerst gewählte Bereich ist Master und bestimmt Quelle und gegebenenfalls das Spotify-Konto.
+* __Now Playing__: Cover in der verfügbaren Größe, Spulen, Zufall, Wiederholen, Lautstärke; Zone, Musik und (falls aktiv) Spotify-Konto direkt erreichbar.
+* __Musik__: oben die Quelle wählen – __Spotify__ (nur mit SpotOn), __Bibliothek__ (eigene Musik im LMS) und __Favoriten__. Die Kachel merkt sich die zuletzt gewählte Quelle. Darunter „Abspielen in“ für die Ziel-Zone, bei Spotify zusätzlich der Kontoumschalter. Listen mit Vorschaubildern; Titel, Alben und Playlists lassen sich sofort abspielen, als Nächstes einreihen oder anhängen.
+* __Bibliothek__: Einstiege Suche, Interpreten, Alben, Neue Musik, Genres, Jahre, Musikordner und Wiedergabelisten – dieselben Wege wie in der LMS-Weboberfläche.
 
-Die Kachel scrollt nicht. Symcon nutzt Wischgesten auf Kacheln selbst zum Scrollen der Seite, deshalb wäre Scrollen innerhalb der Kachel vor allem in der App unzuverlässig. Stattdessen passt sich der Inhalt der Höhe der Kachel an: Lange Listen (Bereiche, Spotify, Zone bearbeiten) werden mit ‹ › seitenweise geblättert, im Browser zusätzlich per Mausrad.
+Die Kachel scrollt nicht. Symcon nutzt Wischgesten auf Kacheln selbst zum Scrollen der Seite, deshalb wäre Scrollen innerhalb der Kachel vor allem in der App unzuverlässig. Stattdessen passt sich der Inhalt der Höhe der Kachel an: Lange Listen (Bereiche, Musik, Zone bearbeiten) werden mit ‹ › seitenweise geblättert, im Browser zusätzlich per Mausrad.
 
 Farben und Schrift übernimmt die Kachel aus dem gewählten Design der Visualisierung (hell oder dunkel, Akzentfarbe, Kachelfarbe). Alle Flächen und Linien werden aus diesen Farben abgeleitet; der Kacheltitel von Symcon bleibt frei.
 
@@ -161,6 +166,12 @@ Spielt eine URL bzw. einen Stream ab.
 Beispiel:
 `LMR_PlayURL(12345, 'Küche', 'http://example.com/stream.mp3');`
 
+`boolean LMR_PlayFavorite(integer $InstanzID, string $Player, string $Favorite);`
+Startet einen LMS-Favoriten, per Name (ohne Beachtung der Groß-/Kleinschreibung) oder per Position in der Favoritenliste (`'1'` = erster Eintrag).
+
+Beispiel:
+`LMR_PlayFavorite(12345, 'Küche', 'Deutschlandfunk');`
+
 `boolean LMR_SetZone(integer $InstanzID, string $Master, string $Members);`
 Setzt die Mitglieder einer Zone. `$Members` ist eine kommagetrennte Liste, der erste Eintrag wird Master. Eine leere Liste löst die Zone auf.
 
@@ -180,7 +191,7 @@ Beispiel:
 `LMR_LeaveZone(12345, 'Terrasse');`
 
 `string LMR_GetSpotifyAccounts(integer $InstanzID);`
-Liefert die in SpotOn gekoppelten Konten als JSON `[{"id": "...", "name": "..."}]`.
+Liefert die in SpotOn gekoppelten Konten als JSON `[{"id": "...", "name": "..."}]`. Bei abgeschalteter Spotify-Integration ist die Liste leer.
 
 Beispiel:
 `$accounts = json_decode(LMR_GetSpotifyAccounts(12345), true);`

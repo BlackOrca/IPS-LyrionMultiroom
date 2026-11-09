@@ -97,8 +97,13 @@
         },
         {
             "type": "ExpansionPanel",
-            "caption": "Spotify and display",
+            "caption": "Music sources and display",
             "items": [
+                {
+                    "type": "CheckBox",
+                    "name": "SpotifyEnabled",
+                    "caption": "Use Spotify via the LMS plugin SpotOn (optional)"
+                },
                 {
                     "type": "ValidationTextBox",
                     "name": "SpotifyPlugin",

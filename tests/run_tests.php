@@ -199,6 +199,7 @@ namespace {
     $kz = array_values(array_filter($s['zones'], static fn ($z) => $z['id'] === 'aa:bb:cc:00:00:03'))[0];
     check('Kinderzimmer: eigenes Konto Familie', $kz['accountName'] === 'Familie' && $kz['mode'] === 'pause');
     check('Spotify erkannt, 2 Konten', $s['spotify'] === true && count($s['accounts']) === 2);
+    check('Musikquellen erkannt: Bibliothek, Favoriten, Spotify', $s['sources'] === ['library', 'favorites', 'spotify'], json_encode($s['sources']));
     $covers = array_values(array_filter($visu(), static fn ($m) => ($m['t'] ?? '') === 'covers'));
     check('Cover als data-URI gesendet', count($covers) > 0 && str_starts_with((string) reset($covers[0]['covers']), 'data:image/jpeg;base64,'));
     check('Keine Token im Zustand', !str_contains(json_encode($s), 'spotifyUserId'));
@@ -246,24 +247,46 @@ namespace {
 
     // Browse
     $before = count($visu());
-    IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => '', 'req' => 'r1']));
+    IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'spotify', 'id' => '', 'req' => 'r1']));
     $new = array_slice($visu(), $before);
     $browse = array_values(array_filter($new, static fn ($m) => ($m['t'] ?? '') === 'browse'))[0] ?? null;
     check('Browse Root ohne Kontoumschalter', $browse !== null && $browse['req'] === 'r1' && count($browse['items']) === 3 && $browse['items'][1]['type'] === 'search', json_encode($browse));
     $thumbs = array_values(array_filter($new, static fn ($m) => ($m['t'] ?? '') === 'thumbs'))[0] ?? null;
     check('Vorschaubilder nachgeliefert', $thumbs !== null && count($thumbs['images']) === 3);
     $before = count($visu());
-    IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.1', 'req' => 'r2']));
+    IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'spotify', 'id' => 'ab12.1', 'req' => 'r2']));
     $browse = array_values(array_filter(array_slice($visu(), $before), static fn ($m) => ($m['t'] ?? '') === 'browse'))[0];
     check('Browse nutzt Konto des Players (Familie)', $browse['items'][0]['name'] === 'Die Waldbande', $browse['items'][0]['name']);
     $before = count($visu());
-    IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.2', 'q' => 'jazz', 'req' => 'r3']));
+    IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'spotify', 'id' => 'ab12.2', 'q' => 'jazz', 'req' => 'r3']));
     $browse = array_values(array_filter(array_slice($visu(), $before), static fn ($m) => ($m['t'] ?? '') === 'browse'))[0];
     check('Suche übergibt search:', $browse['items'][0]['name'] === 'Jazz – Treffer 1' && in_array('aa:bb:cc:00:00:01 spoton items 0 200 want_url:0 item_id:ab12.2 search:jazz', $fake()['log'], true));
-    IPS_RequestAction($id, 'UI', json_encode(['c' => 'playItem', 'p' => 'aa:bb:cc:00:00:03', 'id' => 'ab12.1.0', 'v' => 'play']));
+    IPS_RequestAction($id, 'UI', json_encode(['c' => 'playItem', 'p' => 'aa:bb:cc:00:00:03', 'src' => 'spotify', 'id' => 'ab12.1.0', 'v' => 'play']));
     $runDebounce();
     $kz = array_values(array_filter($lastState()['zones'], static fn ($z) => $z['id'] === 'aa:bb:cc:00:00:03'))[0];
     check('Titel aus Spotify gestartet', $kz['title'] === 'Gestartet ab12.1.0' && $kz['mode'] === 'play', json_encode($kz));
+
+    // Lokale Bibliothek und Favoriten
+    $browseMsg = static function (array $request) use ($id, $visu): ?array {
+        $before = count($visu());
+        IPS_RequestAction($id, 'UI', json_encode($request));
+        return array_values(array_filter(array_slice($visu(), $before), static fn ($m) => ($m['t'] ?? '') === 'browse'))[0] ?? null;
+    };
+    $lib = $browseMsg(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'library', 'root' => 'artists', 'id' => '', 'req' => 'l1']);
+    check('Bibliothek: Interpreten', $lib !== null && $lib['items'][1]['name'] === 'Hans Zimmer' && in_array('aa:bb:cc:00:00:01 browselibrary items 0 200 want_url:0 mode:artists', $fake()['log'], true), json_encode($lib));
+    $lib = $browseMsg(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'library', 'root' => 'artists', 'id' => 'lib.1', 'req' => 'l2']);
+    check('Bibliothek: Unterebene behält den Einstieg (mode)', count($lib['items']) === 3 && in_array('aa:bb:cc:00:00:01 browselibrary items 0 200 want_url:0 mode:artists item_id:lib.1', $fake()['log'], true));
+    $lib = $browseMsg(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'library', 'root' => 'search', 'id' => 'lib.2', 'q' => 'zimmer', 'req' => 'l3']);
+    check('Bibliothek: Suche', ($lib['items'][0]['name'] ?? '') === 'Fund: zimmer');
+    $lib = $browseMsg(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'library', 'root' => 'evil', 'id' => '', 'req' => 'l4']);
+    check('Bibliothek: unbekannter Einstieg abgelehnt', $lib !== null && ($lib['error'] ?? false) === true);
+    IPS_RequestAction($id, 'UI', json_encode(['c' => 'playItem', 'p' => 'aa:bb:cc:00:00:02', 'src' => 'library', 'root' => 'albums', 'id' => 'lib.0.1', 'v' => 'insert']));
+    check('Bibliothek: Titel einreihen', in_array('aa:bb:cc:00:00:02 browselibrary playlist insert item_id:lib.0.1 mode:albums', $fake()['log'], true));
+    $fav = $browseMsg(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'favorites', 'id' => '', 'req' => 'f1']);
+    check('Favoriten: Liste', count($fav['items']) === 3 && $fav['items'][0]['name'] === 'Deutschlandfunk');
+    check('LMR_PlayFavorite per Name', $module->PlayFavorite('Küche', 'WDR 2') === true && in_array('aa:bb:cc:00:00:02 favorites playlist play item_id:fav.1', $fake()['log'], true));
+    check('LMR_PlayFavorite per Position', $module->PlayFavorite('Küche', '1') === true && in_array('aa:bb:cc:00:00:02 favorites playlist play item_id:fav.0', $fake()['log'], true));
+    $runDebounce();
 
     // Live-Ereignis über den CLI-Socket
     $f = $fake();
@@ -309,6 +332,20 @@ namespace {
         $this->SetZoneVolume('aa:bb:cc:00:00:01', 50);
         return true;
     })->call($module) && abs($fake()['players']['aa:bb:cc:00:00:01']['volume'] - $fake()['players']['aa:bb:cc:00:00:02']['volume']) === abs(35 - 33));
+
+    // Spotify abschalten (für Nutzer ohne SpotOn)
+    IPS_SetProperty($id, 'SpotifyEnabled', false);
+    IPS_ApplyChanges($id);
+    $s = $lastState();
+    check('Spotify abgeschaltet: keine Spotify-Quelle, keine Konten', $s['spotify'] === false && $s['sources'] === ['library', 'favorites'] && $s['accounts'] === [], json_encode($s['sources']));
+    $logBefore = count($fake()['log']);
+    IPS_RequestAction($id, 'Poll', 0);
+    $newLog = implode("\n", array_slice($fake()['log'], $logBefore));
+    check('Spotify abgeschaltet: keine SpotOn-Abfragen mehr', !str_contains($newLog, 'spoton') && !str_contains($newLog, 'plugin.spoton'), $newLog);
+    $sp = $browseMsg(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'src' => 'spotify', 'id' => '', 'req' => 's9']);
+    check('Spotify abgeschaltet: Browse abgelehnt', ($sp['error'] ?? false) === true);
+    IPS_SetProperty($id, 'SpotifyEnabled', true);
+    IPS_ApplyChanges($id);
 
     // LMS offline
     proc_terminate($server);

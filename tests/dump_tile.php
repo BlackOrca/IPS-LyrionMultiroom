@@ -13,6 +13,7 @@ require_once $stubs . '/autoload.php';
 
 $out = $argv[1] ?? sys_get_temp_dir() . '/lmr';
 $single = ($argv[2] ?? '') === 'single';
+$noSpotify = ($argv[2] ?? '') === 'nospotify';
 @mkdir($out, 0777, true);
 
 $port = 19078;
@@ -53,6 +54,9 @@ if (!$single) {
         ['id' => 'aa:bb:cc:00:00:04', 'area' => 'Obergeschoss', 'visible' => true]
     ]));
 }
+if ($noSpotify) {
+    IPS_SetProperty($id, 'SpotifyEnabled', false);
+}
 IPS_ApplyChanges($id);
 
 file_put_contents($out . '/tile.html', $module->GetVisualizationTile());
@@ -71,11 +75,16 @@ $capture = static function (callable $fn) use ($messages): array {
     $fn();
     return array_slice($messages(), $before);
 };
+$browse = static fn (array $req) => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode($req + ['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'req' => 'X'])));
+// Schlüssel: Quelle:Einstieg:Art – so findet der Test-Harness die passende Antwort
 $responses = [
-    'root'   => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => '', 'req' => 'X']))),
-    'list'   => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.1', 'req' => 'X']))),
-    'search' => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.2', 'q' => 'nordlicht', 'req' => 'X']))),
-    'long'   => $capture(static fn () => IPS_RequestAction($id, 'UI', json_encode(['c' => 'browse', 'p' => 'aa:bb:cc:00:00:01', 'id' => 'ab12.3', 'req' => 'X'])))
+    'spotify::root'       => $browse(['src' => 'spotify', 'id' => '']),
+    'spotify::item'       => $browse(['src' => 'spotify', 'id' => 'ab12.1']),
+    'spotify::search'     => $browse(['src' => 'spotify', 'id' => 'ab12.2', 'q' => 'nordlicht']),
+    'spotify::long'       => $browse(['src' => 'spotify', 'id' => 'ab12.3']),
+    'library:artists:root' => $browse(['src' => 'library', 'root' => 'artists', 'id' => '']),
+    'library:artists:item' => $browse(['src' => 'library', 'root' => 'artists', 'id' => 'lib.1']),
+    'favorites::root'     => $browse(['src' => 'favorites', 'id' => ''])
 ];
 file_put_contents($out . '/responses.json', json_encode($responses));
 proc_terminate($server);

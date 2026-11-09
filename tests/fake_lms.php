@@ -128,7 +128,64 @@ switch ($cmd[0]) {
         break;
 
     case 'can':
-        $result = ['_can' => ($cmd[1] ?? '') === 'spoton' ? 1 : 0];
+        $result = ['_can' => in_array($cmd[1] ?? '', ['spoton', 'browselibrary', 'favorites'], true) ? 1 : 0];
+        break;
+
+    case 'browselibrary':
+        $mode = $tagged($cmd, 'mode');
+        $id = $tagged($cmd, 'item_id');
+        $search = $tagged($cmd, 'search');
+        if ($cmd[1] === 'playlist') {
+            foreach ($peers($player) as $pid) {
+                $state['players'][$pid]['track'] = ['title' => 'Lokal ' . $mode . ' ' . $id, 'artist' => 'Bibliothek', 'album' => '', 'artwork_url' => '', 'duration' => 180];
+                $state['players'][$pid]['mode'] = 'play';
+                $state['players'][$pid]['time'] = 0.0;
+                $state['players'][$pid]['tracks'] = 10;
+                $state['players'][$pid]['power'] = 1;
+            }
+            break;
+        }
+        if ($mode === null) {
+            $result = ['count' => 1, 'loop_loop' => [['id' => 'x', 'name' => 'Routing failure', 'type' => 'text']]];
+            break;
+        }
+        $loop = [];
+        if ($mode === 'search' && $id === null) {
+            foreach (['Interpreten', 'Alben', 'Titel'] as $i => $n) {
+                $loop[] = ['id' => 'lib.' . $i, 'name' => $n, 'type' => 'search', 'isaudio' => 0, 'hasitems' => 1];
+            }
+        } elseif ($search !== null) {
+            $loop[] = ['id' => $id . '.0', 'name' => 'Fund: ' . $search, 'type' => 'playlist', 'image' => '/music/0a1b2c3d/cover', 'isaudio' => 1, 'hasitems' => 1];
+        } elseif ($id === null) {
+            $names = $mode === 'artists' ? ['ABBA', 'Hans Zimmer', 'Nordlicht Kollektiv'] : ['Album A', 'Album B'];
+            foreach ($names as $i => $n) {
+                $loop[] = ['id' => 'lib.' . $i, 'name' => $n, 'type' => 'playlist', 'image' => '/music/0a1b2c3' . $i . '/cover', 'isaudio' => 1, 'hasitems' => 1];
+            }
+        } else {
+            for ($i = 0; $i < 3; $i++) {
+                $loop[] = ['id' => $id . '.' . $i, 'name' => 'Titel ' . ($i + 1), 'type' => 'audio', 'isaudio' => 1, 'hasitems' => 0];
+            }
+        }
+        $result = ['count' => count($loop), 'loop_loop' => $loop];
+        break;
+
+    case 'favorites':
+        if ($cmd[1] === 'playlist') {
+            $id = $tagged($cmd, 'item_id');
+            foreach ($peers($player) as $pid) {
+                $state['players'][$pid]['track'] = ['title' => 'Favorit ' . $id, 'artist' => 'Radio', 'album' => '', 'artwork_url' => '', 'duration' => 0];
+                $state['players'][$pid]['mode'] = 'play';
+                $state['players'][$pid]['time'] = 0.0;
+                $state['players'][$pid]['tracks'] = 1;
+                $state['players'][$pid]['power'] = 1;
+            }
+            break;
+        }
+        $loop = [];
+        foreach (['Deutschlandfunk', 'WDR 2', 'Lieblingsalben'] as $i => $n) {
+            $loop[] = ['id' => 'fav.' . $i, 'name' => $n, 'type' => $i === 2 ? 'link' : 'audio', 'isaudio' => $i === 2 ? 0 : 1, 'hasitems' => $i === 2 ? 1 : 0];
+        }
+        $result = ['count' => 3, 'title' => 'Favoriten', 'loop_loop' => $loop];
         break;
 
     case 'pref':

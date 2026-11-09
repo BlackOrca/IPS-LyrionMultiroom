@@ -23,6 +23,18 @@ class LyrionMultiroom extends IPSModuleStrict
     private const STATUS_NO_HOST = 104;
     private const STATUS_UNREACHABLE = 202;
 
+    /** Einstiege in die lokale Bibliothek (LMS "browselibrary", Parameter je Einstieg) */
+    private const LIBRARY_ROOTS = [
+        'artists'   => ['mode:artists'],
+        'albums'    => ['mode:albums'],
+        'new'       => ['mode:albums', 'sort:new', 'wantMetadata:1'],
+        'genres'    => ['mode:genres'],
+        'years'     => ['mode:years'],
+        'folder'    => ['mode:bmf'],
+        'playlists' => ['mode:playlists'],
+        'search'    => ['mode:search']
+    ];
+
     private const MAX_COVERS = 10;
     private const MAX_THUMBS = 60;
     private const THUMB_SIZE = 120;
@@ -38,6 +50,7 @@ class LyrionMultiroom extends IPSModuleStrict
         $this->RegisterPropertyString('Username', '');
         $this->RegisterPropertyString('Password', '');
         $this->RegisterPropertyString('Players', '[]');
+        $this->RegisterPropertyBoolean('SpotifyEnabled', true);
         $this->RegisterPropertyString('SpotifyPlugin', 'spoton');
         $this->RegisterPropertyInteger('CoverSize', 500);
         $this->RegisterPropertyBoolean('PowerOnJoin', true);
@@ -350,6 +363,33 @@ class LyrionMultiroom extends IPSModuleStrict
         return $this->PlayerCommand($Player, ['sync', '-'], '*');
     }
 
+    /**
+     * Spielt einen LMS-Favoriten (oberste Ebene) per Name oder Position (1 = erster) ab.
+     */
+    public function PlayFavorite(string $Player, string $Favorite): bool
+    {
+        $id = $this->ResolvePlayer($Player);
+        if ($id === null) {
+            return false;
+        }
+        $list = $this->Rpc($id, ['favorites', 'items', '0', '200', 'want_url:0']);
+        $found = null;
+        foreach (array_values($list['loop_loop'] ?? []) as $index => $row) {
+            $name = (string) ($row['name'] ?? '');
+            if (strcasecmp($name, trim($Favorite)) === 0 || (ctype_digit($Favorite) && (int) $Favorite === $index + 1)) {
+                $found = (string) ($row['id'] ?? '');
+                break;
+            }
+        }
+        if ($found === null || $found === '') {
+            trigger_error('Unknown favorite: ' . $Favorite, E_USER_NOTICE);
+            return false;
+        }
+        $ok = $this->Rpc($id, ['favorites', 'playlist', 'play', 'item_id:' . $found], 15) !== null;
+        $this->QueueRefresh($id);
+        return $ok;
+    }
+
     /** Liefert die SpotOn-Konten als JSON [{id, name}]. */
     public function GetSpotifyAccounts(): string
     {
@@ -481,13 +521,14 @@ class LyrionMultiroom extends IPSModuleStrict
                 }
                 break;
             case 'browse':
-                $this->Browse($p, (string) ($msg['id'] ?? ''), (string) ($msg['q'] ?? ''), (string) ($msg['req'] ?? ''));
+                $this->Browse($p, (string) ($msg['src'] ?? ''), (string) ($msg['root'] ?? ''), (string) ($msg['id'] ?? ''), (string) ($msg['q'] ?? ''), (string) ($msg['req'] ?? ''));
                 return;
             case 'playItem':
                 $mode = in_array($v, ['play', 'add', 'insert'], true) ? $v : 'play';
                 $item = (string) ($msg['id'] ?? '');
-                if ($item !== '') {
-                    $this->Rpc($p, [$this->Plugin(), 'playlist', $mode, 'item_id:' . $item], 15);
+                $source = $this->SourceCommand((string) ($msg['src'] ?? ''), (string) ($msg['root'] ?? ''));
+                if ($item !== '' && $source !== null) {
+                    $this->Rpc($p, array_merge([$source[0], 'playlist', $mode, 'item_id:' . $item], $source[1]), 15);
                 }
                 break;
             default:
@@ -497,9 +538,32 @@ class LyrionMultiroom extends IPSModuleStrict
         $this->QueueRefresh($p);
     }
 
-    private function Browse(string $player, string $itemId, string $query, string $req): void
+    /**
+     * Liefert [CLI-Befehl, Zusatzparameter] einer Musikquelle oder null, wenn sie nicht verfügbar ist.
+     * library = lokale Bibliothek (browselibrary), favorites = LMS-Favoriten, spotify = SpotOn (optional)
+     */
+    private function SourceCommand(string $source, string $root): ?array
     {
-        $cmd = [$this->Plugin(), 'items', '0', '200', 'want_url:0'];
+        $available = $this->LoadState()['sources'] ?? [];
+        if (!in_array($source, $available, true)) {
+            return null;
+        }
+        return match ($source) {
+            'library'   => isset(self::LIBRARY_ROOTS[$root]) ? ['browselibrary', self::LIBRARY_ROOTS[$root]] : null,
+            'favorites' => ['favorites', []],
+            'spotify'   => [$this->Plugin(), []],
+            default     => null
+        };
+    }
+
+    private function Browse(string $player, string $sourceName, string $root, string $itemId, string $query, string $req): void
+    {
+        $source = $this->SourceCommand($sourceName, $root);
+        if ($source === null) {
+            $this->UpdateVisualizationValue(json_encode(['t' => 'browse', 'req' => $req, 'error' => true, 'items' => []]));
+            return;
+        }
+        $cmd = array_merge([$source[0], 'items', '0', '200', 'want_url:0'], $source[1]);
         if ($itemId !== '') {
             $cmd[] = 'item_id:' . $itemId;
         }
@@ -519,7 +583,7 @@ class LyrionMultiroom extends IPSModuleStrict
             }
             $image = (string) ($row['image'] ?? '');
             // Den Kontoumschalter von SpotOn ausblenden, das erledigt die Kachel selbst.
-            if (str_ends_with($image, '/account.png')) {
+            if ($sourceName === 'spotify' && str_ends_with($image, '/account.png')) {
                 continue;
             }
             $id = (string) $row['id'];
@@ -648,9 +712,21 @@ class LyrionMultiroom extends IPSModuleStrict
                 }
             }
 
-            $plugin = $this->Plugin();
-            $can = $this->Rpc('', ['can', $plugin, 'items', '?']);
-            $spotify = ((int) ($can['_can'] ?? 0)) === 1;
+            $sources = [];
+            foreach (['library' => 'browselibrary', 'favorites' => 'favorites'] as $name => $command) {
+                $can = $this->Rpc('', ['can', $command, 'items', '?']);
+                if (((int) ($can['_can'] ?? 0)) === 1) {
+                    $sources[] = $name;
+                }
+            }
+            $spotify = false;
+            if ($this->ReadPropertyBoolean('SpotifyEnabled')) {
+                $can = $this->Rpc('', ['can', $this->Plugin(), 'items', '?']);
+                $spotify = ((int) ($can['_can'] ?? 0)) === 1;
+            }
+            if ($spotify) {
+                $sources[] = 'spotify';
+            }
             $accounts = [];
             $defaultAccount = '';
             if ($spotify) {
@@ -665,6 +741,7 @@ class LyrionMultiroom extends IPSModuleStrict
                 'players'        => $players,
                 'groups'         => $groups,
                 'spotify'        => $spotify,
+                'sources'        => $sources,
                 'accounts'       => $accounts,
                 'defaultAccount' => $defaultAccount
             ];
@@ -856,6 +933,7 @@ class LyrionMultiroom extends IPSModuleStrict
             'players'  => $uiPlayers,
             'zones'    => $zones,
             'spotify'  => (bool) ($state['spotify'] ?? false),
+            'sources'  => array_values($state['sources'] ?? []),
             'accounts' => array_values($state['accounts'] ?? [])
         ];
     }
@@ -1107,7 +1185,9 @@ class LyrionMultiroom extends IPSModuleStrict
         $this->FullRefresh();
         $state = $this->LoadState();
         $text = sprintf($this->Translate('Connected to Lyrion %s. Players: %d.'), (string) ($server['version'] ?? '?'), count($state['players'] ?? []));
-        if (!($state['spotify'] ?? false)) {
+        if (!$this->ReadPropertyBoolean('SpotifyEnabled')) {
+            $text .= ' ' . $this->Translate('Spotify integration is disabled.');
+        } elseif (!($state['spotify'] ?? false)) {
             $text .= ' ' . sprintf($this->Translate('Spotify plugin "%s" not found.'), $this->Plugin());
         } else {
             $text .= ' ' . sprintf($this->Translate('Spotify accounts: %d.'), count($state['accounts'] ?? []));
