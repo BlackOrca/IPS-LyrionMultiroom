@@ -140,7 +140,7 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 .thumb { width: 44px; height: 44px; border-radius: 9px; overflow: hidden; background: var(--surface2); flex: none; display: flex; align-items: center; justify-content: center; color: var(--dim); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 .search { display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 6px 0 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); margin: 6px 0; }
-.search input { flex: 1 1 auto; min-width: 0; height: 40px; border: none; background: transparent; outline: none; }
+.search input { flex: 1 1 auto; min-width: 0; height: 40px; border: none; background: transparent; outline: none; color: inherit; font: inherit; font-size: 16px; }
 .search input::placeholder { color: var(--dim); }
 .skel { height: 58px; border-radius: 12px; background: linear-gradient(90deg, var(--surface), var(--surface2), var(--surface)); background-size: 200% 100%; animation: sk 1.2s linear infinite; margin-bottom: 6px; }
 @keyframes sk { from { background-position: 200% 0; } to { background-position: 0 0; } }
@@ -382,7 +382,7 @@ function handleMessage(data) {
  * Symcon wertet Wischgesten auf Kacheln selbst aus (die Seite scrollt). Scrollen innerhalb der
  * Kachel ist deshalb vor allem in der App nicht verlässlich. Die Kachel scrollt darum nie:
  * Die verfügbare Höhe wird gemessen und Einträge mit fester Höhe werden auf Seiten verteilt. */
-var CAP = {}, CAPW = {}, PAGE = {}, PAGEKEY = {};
+var CAP = {}, CAPW = {}, PAGE = {}, PAGEKEY = {}, DRAFTS = {};
 function paginate(entries, cap, gap) {
   var pages = [], cur = [], used = 0;
   var sum = function (list) { return list.reduce(function (s, x, i) { return s + x.h + (i ? gap : 0); }, 0); };
@@ -436,27 +436,36 @@ function fitCovers() {
 function head(text, sub) { return { h: 20, head: true, html: '<div class="sec' + (sub ? ' subhead' : '') + '">' + esc(text) + '</div>' }; }
 
 /* ------------------------------------------------------------------ Rendering */
+/* Während im Suchfeld getippt wird, bleibt der Bereich mit dem Feld unangetastet: Die Bildschirmtastatur
+ * macht die Kachel kürzer (resize) und Statusmeldungen laufen weiter. Würde der Bereich dabei neu
+ * aufgebaut, verlöre das Feld den Fokus und die Tastatur ginge sofort wieder zu. */
+function typingPane() {
+  var a = document.activeElement;
+  if (!a || a.tagName !== 'INPUT' || (a.type !== 'search' && a.type !== 'text')) return null;
+  return a.closest('.pane') || document.body;
+}
 function render() {
   if (S.drag) { S.dirty = true; return; }
   if (S.raf) return;
   S.raf = requestAnimationFrame(function () { S.raf = 0; renderNow(); });
 }
 function renderNow() {
-  var app = $('#app');
+  var app = $('#app'), frozen = typingPane();
   app.setAttribute('data-layout', S.layout);
   $('#offline').hidden = !(S.st && !S.st.online);
   for (var pass = 0; pass < 3; pass++) {
-    renderAll();
+    renderAll(frozen);
     if (!measure()) break;
   }
   fitCovers();
   if ((S.layout === 'wide' || S.view === 'browse') && S.st && sources().length && !S.browse.loaded && !S.browse.loading) browseLoad();
 }
-function renderAll() {
+function renderAll(frozen) {
   if (S.layout === 'mini') { renderMini(); return; }
-  if (S.layout === 'wide' || S.view === 'rooms') renderRooms();
-  if (S.layout === 'wide' || S.view === 'zone') renderZone();
-  if (S.layout === 'wide' || S.view === 'browse') renderBrowse();
+  var show = function (v) { return (S.layout === 'wide' || S.view === v) && (!frozen || frozen.id !== 'pane' + v[0].toUpperCase() + v.slice(1)); };
+  if (show('rooms')) renderRooms();
+  if (show('zone')) renderZone();
+  if (show('browse')) renderBrowse();
   ['rooms', 'zone', 'browse'].forEach(function (v) {
     $('#pane' + v[0].toUpperCase() + v.slice(1)).classList.toggle('on', S.view === v);
   });
@@ -648,7 +657,8 @@ function renderBrowse() {
     order.forEach(function (i) {
       var it = b.items[i];
       if (it.type === 'search') {
-        entries.push({ h: 58, html: '<div class="searchrow"><form class="search" data-act="search" data-i="' + i + '">' + I.search() + '<input type="search" name="q" placeholder="' + esc(it.name || 'Suchen') + '" aria-label="' + esc(it.name || 'Suchen') + '" enterkeyhint="search"></form></div>' });
+        var dk = src + ':' + rootKey() + ':' + it.id;
+        entries.push({ h: 58, html: '<div class="searchrow"><form class="search" data-act="search" data-i="' + i + '" data-k="' + esc(dk) + '">' + I.search() + '<input type="search" name="q" value="' + esc(DRAFTS[dk] || '') + '" placeholder="' + esc(it.name || 'Suchen') + '" aria-label="' + esc(it.name || 'Suchen') + '" enterkeyhint="search" autocomplete="off"></form></div>' });
         return;
       }
       var thumb = S.thumbs[it.id] ? '<img src="' + S.thumbs[it.id] + '" alt="">' : (it.type === 'libroot' ? (it.root === 'search' ? I.search() : I.folder()) : (it.items && !it.audio ? I.folder() : I.note()));
@@ -835,6 +845,7 @@ document.addEventListener('submit', function (e) {
   e.preventDefault();
   var it = S.browse.items[Number(f.getAttribute('data-i'))], q = (f.q.value || '').trim();
   if (!it || !q) return;
+  f.q.blur(); // Tastatur schließen, damit die Treffer die volle Höhe bekommen
   S.browse.stack.push({ id: it.id, name: '„' + q + '“', q: q });
   browseLoad();
 });
@@ -851,6 +862,7 @@ document.addEventListener('change', function (e) {
 });
 document.addEventListener('input', function (e) {
   var el = e.target, act = el.getAttribute && el.getAttribute('data-act'), p = el.getAttribute('data-p');
+  if (el.name === 'q' && el.form && el.form.getAttribute('data-k')) { DRAFTS[el.form.getAttribute('data-k')] = el.value; return; }
   if (act !== 'vol' && act !== 'zoneVol' && act !== 'seek') return;
   S.drag = act + ':' + p;
   var val = Number(el.value);
@@ -947,7 +959,13 @@ function computeLayout() {
 })();
 
 S.layout = computeLayout();
-window.addEventListener('resize', function () { S.layout = computeLayout(); render(); });
+window.addEventListener('resize', function () { if (!typingPane()) S.layout = computeLayout(); render(); });
+/* Nach dem Tippen alles nachholen. Verzögert, damit ein Tipp auf einen Knopf, der das Feld verlässt,
+   noch auf demselben Knopf landet. */
+document.addEventListener('focusout', function (e) {
+  if (!e.target || e.target.tagName !== 'INPUT') return;
+  setTimeout(function () { if (!typingPane()) { S.layout = computeLayout(); render(); } }, 80);
+});
 render();
 setTimeout(function () { send({ c: 'hello' }); }, 30);
 </script>
